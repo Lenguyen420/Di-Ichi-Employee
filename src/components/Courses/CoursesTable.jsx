@@ -1,0 +1,22 @@
+import { DataTable } from '../Common/DataTable.jsx'
+
+export const CoursesTable = ({ courses, onView }) => {
+  const columns = [
+    { header: 'Mã khóa', accessorKey: 'code' },
+    { header: 'Tên khóa học', accessorKey: 'name' },
+    { header: 'Trình độ', accessorKey: 'level' },
+    { header: 'Thời lượng', accessorKey: 'duration' },
+    { header: 'Học phí', accessorKey: 'tuition' },
+    { header: 'Danh sách lớp', accessorKey: 'classes' },
+    {
+      header: 'Thao tác',
+      cell: ({ row }) => (
+        <button className="rounded-lg px-3 py-2 text-sm font-black text-orange-600 transition hover:bg-orange-50 hover:text-orange-700" type="button" onClick={() => onView(row.original)}>
+          Xem chi tiết
+        </button>
+      ),
+    },
+  ]
+
+  return <DataTable columns={columns} data={courses} />
+}
