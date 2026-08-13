@@ -4,8 +4,11 @@ export const CoursesTable = ({ courses, onView }) => {
   const columns = [
     { header: 'Mã khóa', accessorKey: 'code' },
     { header: 'Tên khóa học', accessorKey: 'name' },
-    { header: 'Trình độ', accessorKey: 'level' },
+    { header: 'Độ tuổi', accessorKey: 'age' },
+    { header: 'Cấp độ', accessorKey: 'level' },
     { header: 'Thời lượng', accessorKey: 'duration' },
+    { header: 'Chứng chỉ đầu ra', accessorKey: 'certificate' },
+    { header: 'Định hướng', accessorKey: 'orientation' },
     { header: 'Học phí', accessorKey: 'tuition' },
     { header: 'Danh sách lớp', accessorKey: 'classes' },
     {

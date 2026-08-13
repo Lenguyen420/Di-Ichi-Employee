@@ -68,6 +68,7 @@ export const CoursesPage = () => {
           </button>
         </div>
       </div>
+
       {viewMode === 'table'
         ? <CoursesTable courses={courses} onView={setSelectedCourse} />
         : <CourseCards courses={courses} onView={setSelectedCourse} />}

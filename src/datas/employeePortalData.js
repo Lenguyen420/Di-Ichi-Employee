@@ -56,10 +56,10 @@ export const appointments = [
 ]
 
 export const courses = [
-  { code: 'IELTS-FD', name: 'IELTS Foundation', level: 'A2-B1', duration: '36 buổi', tuition: '12.800.000đ', classIds: ['CLASS-1001', 'CLASS-1004', 'CLASS-1005'], classes: 3 },
-  { code: 'IELTS-INT', name: 'IELTS Intermediate', level: 'B1-B2', duration: '42 buổi', tuition: '18.500.000đ', classIds: ['CLASS-1002', 'CLASS-1006'], classes: 2 },
-  { code: 'KIDS-START', name: 'Kids Starter', level: 'Starter', duration: '48 buổi', tuition: '15.200.000đ', classIds: ['CLASS-1003'], classes: 1 },
-  { code: 'COMM-BIZ', name: 'Business Communication', level: 'B1+', duration: '24 buổi', tuition: '9.500.000đ', classIds: [], classes: 0 },
+  { code: 'LITTLE-STARS', name: 'Little Stars', age: '3 - 5 tuổi', level: 'LS1 - LS2 - LS3', duration: '5,5 tháng', certificate: '', orientation: 'Làm quen và hình thành nền tảng tiếng Anh', tuition: 'Đang cập nhật', classIds: [], classes: 0 },
+  { code: 'BRIGHT-STARS', name: 'Bright Stars', age: '6 - 11 tuổi', level: 'BS1 - BS2 - BS3 - BS4 - BS5', duration: '5,5 tháng', certificate: 'Starters -> Movers -> Flyers', orientation: 'Phát triển toàn diện và xây dựng nền tảng', tuition: 'Đang cập nhật', classIds: [], classes: 0 },
+  { code: 'FUTURE-STARS', name: 'Future Stars', age: '12 - 15 tuổi', level: 'FS1 - FS2 - FS3 - FS4 - FS5 - FS6 - FS7 - FS8', duration: '5,5 tháng', certificate: 'KET - PET / Nền tảng IELTS', orientation: 'Tiếng Anh học thuật, thi chứng chỉ', tuition: 'Đang cập nhật', classIds: [], classes: 0 },
+  { code: 'DI-ICHI-LEADER', name: 'Di Ichi Leader', age: '16 - 18+ tuổi', level: 'LD1 - LD2 - LD3 - LD4', duration: '5,5 tháng', certificate: 'IELTS 5.5+ / TOEFL / Cambridge', orientation: 'Luyện thi, chứng chỉ quốc tế, du học & nghề nghiệp', tuition: 'Đang cập nhật', classIds: [], classes: 0 },
 ]
 
 export const classes = [
