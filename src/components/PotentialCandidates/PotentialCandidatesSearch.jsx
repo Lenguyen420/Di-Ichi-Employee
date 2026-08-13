@@ -1,6 +1,6 @@
 import { Search } from 'lucide-react'
 import { Card } from '../Common/Card.jsx'
-import { candidateStatusOptions } from './candidateConstants.js'
+import { candidateStatusOptions } from '../../datas/potentialCandidatesData.js'
 
 export const PotentialCandidatesSearch = ({ keyword, statusFilter, onKeywordChange, onStatusFilterChange }) => (
   <Card className="rounded-lg">

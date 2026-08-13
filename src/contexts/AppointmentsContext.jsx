@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
+import { appointmentStatuses, appointmentTypes } from '../datas/appStaticData.js'
 import { appointments as initialAppointments } from '../datas/employeePortalData.js'
-import { appointmentStatuses, appointmentTypes } from './appointmentConstants.js'
 import { AppointmentsContext } from './appointmentsContext.js'
 
 export const AppointmentsProvider = ({ children }) => {

@@ -1,6 +1,6 @@
 import { Search } from 'lucide-react'
 import { Card } from '../Common/Card.jsx'
-import { appointmentStatuses, appointmentTypes } from '../../contexts/appointmentConstants.js'
+import { appointmentStatuses, appointmentTypes } from '../../datas/appStaticData.js'
 import { allAppointmentsOption } from './appointmentHelpers.js'
 
 export const AppointmentFilters = ({ keyword, statusFilter, typeFilter, onKeywordChange, onStatusFilterChange, onTypeFilterChange }) => (

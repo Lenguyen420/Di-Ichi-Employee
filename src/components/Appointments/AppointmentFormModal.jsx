@@ -1,6 +1,6 @@
 import { Clock, X } from 'lucide-react'
 import { Button } from '../Common/Button.jsx'
-import { appointmentStatuses, appointmentTypes } from '../../contexts/appointmentConstants.js'
+import { appointmentStatuses, appointmentTypes } from '../../datas/appStaticData.js'
 
 export const AppointmentFormModal = ({ form, mode, onChange, onClose, onSubmit }) => (
   <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/20 p-4">

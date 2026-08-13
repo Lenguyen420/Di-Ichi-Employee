@@ -7,7 +7,7 @@ import { AppointmentFormModal } from '../../components/Appointments/AppointmentF
 import { AppointmentsTable } from '../../components/Appointments/AppointmentsTable.jsx'
 import { allAppointmentsOption, emptyAppointmentForm, splitDateTime, toDateTimeValue } from '../../components/Appointments/appointmentHelpers.js'
 import { Button } from '../../components/Common/Button.jsx'
-import { appointmentStatuses, appointmentTypes } from '../../contexts/appointmentConstants.js'
+import { appointmentStatuses, appointmentTypes } from '../../datas/appStaticData.js'
 import { useAppointments } from '../../contexts/useAppointments.js'
 
 export const AppointmentsPage = () => {

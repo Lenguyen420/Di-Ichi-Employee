@@ -3,10 +3,9 @@ import { toast } from 'sonner'
 import { EnrollmentForm } from '../../components/Enrollment/EnrollmentForm.jsx'
 import { EnrollmentSteps } from '../../components/Enrollment/EnrollmentSteps.jsx'
 import { EnrollmentSummary } from '../../components/Enrollment/EnrollmentSummary.jsx'
+import { enrollmentSteps } from '../../datas/appStaticData.js'
 import { availableStudents, classes, courses, customers } from '../../datas/employeePortalData.js'
 import { potentialCandidates } from '../../datas/potentialCandidatesData.js'
-
-const steps = ['Chọn khách hàng', 'Gợi ý khóa học', 'Chọn lớp', 'Học phí', 'Hoàn tất đăng ký']
 
 const parseVnd = (value) => Number(String(value).replace(/[^\d]/g, '')) || 0
 
@@ -135,7 +134,7 @@ export const EnrollmentPage = () => {
         <p className="mt-2 text-sm text-slate-500">Từ chọn khách hàng, gợi ý khóa học, chọn lớp, tính học phí đến hoàn tất đăng ký.</p>
       </div>
 
-      <EnrollmentSteps steps={steps} />
+      <EnrollmentSteps steps={enrollmentSteps} />
 
       <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
         <EnrollmentForm
