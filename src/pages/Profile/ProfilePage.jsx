@@ -1,16 +1,8 @@
 import { ProfileHeaderCard } from '../../components/Profile/ProfileHeaderCard.jsx'
 import { ProfileStatsGrid } from '../../components/Profile/ProfileStatsGrid.jsx'
 import { ProfileWorkPanel } from '../../components/Profile/ProfileWorkPanel.jsx'
+import { currentEmployee } from '../../datas/appStaticData.js'
 import { appointments, calls, customers, todayTasks } from '../../datas/employeePortalData.js'
-
-const currentEmployee = {
-  name: 'Lan Anh',
-  title: 'Employee Consultant',
-  email: 'lananh@di-ichi.edu.vn',
-  phone: '0900 111 222',
-  branch: 'Di-Ichi Phú Nhuận',
-  avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=240&q=80',
-}
 
 const parseExpectedValue = (value) => Number(String(value).replace(/[^\d.]/g, '')) || 0
 

@@ -5,9 +5,8 @@ import { PotentialCandidateForm } from '../../components/PotentialCandidates/Pot
 import { PotentialCandidatesHeader } from '../../components/PotentialCandidates/PotentialCandidatesHeader.jsx'
 import { PotentialCandidatesSearch } from '../../components/PotentialCandidates/PotentialCandidatesSearch.jsx'
 import { PotentialCandidatesTable } from '../../components/PotentialCandidates/PotentialCandidatesTable.jsx'
-import { emptyCandidateAppointmentForm, emptyCandidateForm } from '../../components/PotentialCandidates/candidateConstants.js'
 import { useAppointments } from '../../contexts/useAppointments.js'
-import { potentialCandidates } from '../../datas/potentialCandidatesData.js'
+import { emptyCandidateAppointmentForm, emptyCandidateForm, potentialCandidates } from '../../datas/potentialCandidatesData.js'
 
 const splitList = (value) =>
   String(value || '')
@@ -15,20 +14,61 @@ const splitList = (value) =>
     .map((item) => item.trim())
     .filter(Boolean)
 
-const normalizeImportedCandidate = (candidate) => ({
-  name: String(candidate.name || candidate.ten || '').trim(),
-  gender: String(candidate.gender || candidate.gioiTinh || candidate['giới tính'] || 'Nam').trim(),
-  school: String(candidate.school || candidate.truong || candidate['trường'] || '').trim(),
-  className: String(candidate.className || candidate.lop || candidate['lớp'] || '').trim(),
-  certificates: Array.isArray(candidate.certificates) ? candidate.certificates : splitList(candidate.certificates || candidate.chungChi || candidate['chứng chỉ']),
-  parentInfo: String(candidate.parentInfo || candidate.phuHuynh || candidate['phụ huynh'] || '').trim(),
-  parentPhone: String(candidate.parentPhone || candidate.sdtPhuHuynh || candidate['sđt phụ huynh'] || candidate.phone || '').trim(),
-  address: String(candidate.address || candidate.diaChi || candidate['địa chỉ'] || '').trim(),
-  desiredCourses: Array.isArray(candidate.desiredCourses) ? candidate.desiredCourses : splitList(candidate.desiredCourses || candidate.khoaHoc || candidate['khóa học']),
-  freeSchedule: String(candidate.freeSchedule || candidate.lichRanh || candidate['lịch rảnh'] || '').trim(),
-  callCount: Number(candidate.callCount || candidate.soLanGoi || candidate['số lần gọi'] || 0),
-  status: String(candidate.status || candidate.trangThai || candidate['trạng thái'] || 'Mới').trim(),
-})
+const normalizeList = (value) => {
+  if (Array.isArray(value)) return value.map((item) => String(item).trim()).filter(Boolean)
+  return splitList(value)
+}
+
+const compactJoin = (items, separator = ', ') => items.filter(Boolean).join(separator)
+
+const buildParentInfo = (candidateForm) =>
+  compactJoin([
+    candidateForm.fatherName?.trim() ? `Cha: ${candidateForm.fatherName.trim()}` : '',
+    candidateForm.motherName?.trim() ? `Mẹ: ${candidateForm.motherName.trim()}` : '',
+    candidateForm.parentInfo?.trim(),
+  ])
+
+const buildParentPhone = (candidateForm) =>
+  compactJoin([candidateForm.fatherPhone?.trim(), candidateForm.motherPhone?.trim(), candidateForm.parentPhone?.trim()])
+
+const normalizeImportedCandidate = (candidate) => {
+  const fatherName = String(candidate.fatherName || candidate.tenCha || candidate['họ tên cha'] || '').trim()
+  const fatherPhone = String(candidate.fatherPhone || candidate.sdtCha || candidate['sđt cha'] || '').trim()
+  const motherName = String(candidate.motherName || candidate.tenMe || candidate['họ tên mẹ'] || '').trim()
+  const motherPhone = String(candidate.motherPhone || candidate.sdtMe || candidate['sđt mẹ'] || '').trim()
+  const parentInfo = String(candidate.parentInfo || candidate.phuHuynh || candidate['phụ huynh'] || '').trim()
+  const parentPhone = String(candidate.parentPhone || candidate.sdtPhuHuynh || candidate['sđt phụ huynh'] || candidate.phone || '').trim()
+
+  return {
+    name: String(candidate.name || candidate.ten || '').trim(),
+    gender: String(candidate.gender || candidate.gioiTinh || candidate['giới tính'] || 'Nam').trim(),
+    birthYear: String(candidate.birthYear || candidate.namSinh || candidate['năm sinh'] || '').trim(),
+    school: String(candidate.school || candidate.truong || candidate['trường'] || '').trim(),
+    className: String(candidate.className || candidate.lop || candidate['lớp'] || '').trim(),
+    certificates: normalizeList(candidate.certificates || candidate.chungChi || candidate['chứng chỉ']),
+    fatherName,
+    fatherPhone,
+    motherName,
+    motherPhone,
+    parentInfo: parentInfo || compactJoin([fatherName ? `Cha: ${fatherName}` : '', motherName ? `Mẹ: ${motherName}` : '']),
+    parentPhone: parentPhone || compactJoin([fatherPhone, motherPhone]),
+    address: String(candidate.address || candidate.diaChi || candidate['địa chỉ'] || '').trim(),
+    learningGoals: normalizeList(candidate.learningGoals || candidate.mucTieu || candidate['mục tiêu']),
+    otherLearningGoal: String(candidate.otherLearningGoal || candidate.mucTieuKhac || candidate['mục tiêu khác'] || '').trim(),
+    englishExperience: normalizeList(candidate.englishExperience || candidate.quaTrinhHoc || candidate['quá trình học']),
+    previousEnglishCenter: String(candidate.previousEnglishCenter || candidate.trungTamCu || candidate['trung tâm cũ'] || '').trim(),
+    learningStyles: normalizeList(candidate.learningStyles || candidate.hinhThucHoc || candidate['hình thức học']),
+    registrationCourse: String(candidate.registrationCourse || candidate.khoaDangKy || candidate['khóa học đăng ký'] || '').trim(),
+    registrationShift: String(candidate.registrationShift || candidate.caHoc || candidate['ca học'] || '').trim(),
+    registrationDays: String(candidate.registrationDays || candidate.ngayHoc || candidate['ngày học'] || '').trim(),
+    registrationTuition: String(candidate.registrationTuition || candidate.hocPhi || candidate['học phí'] || '').trim(),
+    registrationNote: String(candidate.registrationNote || candidate.ghiChu || candidate['ghi chú'] || '').trim(),
+    desiredCourses: normalizeList(candidate.desiredCourses || candidate.khoaHoc || candidate['khóa học']),
+    freeSchedule: String(candidate.freeSchedule || candidate.lichRanh || candidate['lịch rảnh'] || '').trim(),
+    callCount: Number(candidate.callCount || candidate.soLanGoi || candidate['số lần gọi'] || 0),
+    status: String(candidate.status || candidate.trangThai || candidate['trạng thái'] || 'Mới').trim(),
+  }
+}
 
 const parseCsv = (text) => {
   const lines = text.trim().split(/\r?\n/).filter(Boolean)
@@ -45,10 +85,14 @@ const parseCsv = (text) => {
 const createCandidateId = () => `UV-${Date.now()}`
 
 const toCandidateForm = (candidate) => ({
+  ...emptyCandidateForm,
   ...candidate,
   ...emptyCandidateAppointmentForm,
-  certificates: candidate.certificates.join(', '),
-  desiredCourses: candidate.desiredCourses.join(', '),
+  certificates: normalizeList(candidate.certificates).join(', '),
+  desiredCourses: normalizeList(candidate.desiredCourses).join(', '),
+  learningGoals: normalizeList(candidate.learningGoals),
+  englishExperience: normalizeList(candidate.englishExperience),
+  learningStyles: normalizeList(candidate.learningStyles),
 })
 
 const splitDateTime = (dateTime) => {
@@ -73,7 +117,10 @@ export const PotentialCandidatesPage = () => {
   const handleSubmit = (event) => {
     event.preventDefault()
 
-    if (!candidateForm.name.trim() || !candidateForm.parentInfo.trim() || !candidateForm.parentPhone.trim()) {
+    const parentInfo = buildParentInfo(candidateForm)
+    const parentPhone = buildParentPhone(candidateForm)
+
+    if (!candidateForm.name.trim() || !parentInfo || !parentPhone) {
       toast.error('Vui lòng nhập tên ứng viên, thông tin phụ huynh và SĐT phụ huynh.')
       return
     }
@@ -83,12 +130,27 @@ export const PotentialCandidatesPage = () => {
       id: candidateForm.id || createCandidateId(),
       name: candidateForm.name.trim(),
       gender: candidateForm.gender,
+      birthYear: candidateForm.birthYear.trim(),
       school: candidateForm.school.trim(),
       className: candidateForm.className.trim(),
       certificates: splitList(candidateForm.certificates),
-      parentInfo: candidateForm.parentInfo.trim(),
-      parentPhone: candidateForm.parentPhone.trim(),
+      fatherName: candidateForm.fatherName.trim(),
+      fatherPhone: candidateForm.fatherPhone.trim(),
+      motherName: candidateForm.motherName.trim(),
+      motherPhone: candidateForm.motherPhone.trim(),
+      parentInfo,
+      parentPhone,
       address: candidateForm.address.trim(),
+      learningGoals: normalizeList(candidateForm.learningGoals),
+      otherLearningGoal: candidateForm.otherLearningGoal.trim(),
+      englishExperience: normalizeList(candidateForm.englishExperience),
+      previousEnglishCenter: candidateForm.previousEnglishCenter.trim(),
+      learningStyles: normalizeList(candidateForm.learningStyles),
+      registrationCourse: candidateForm.registrationCourse.trim(),
+      registrationShift: candidateForm.registrationShift.trim(),
+      registrationDays: candidateForm.registrationDays.trim(),
+      registrationTuition: candidateForm.registrationTuition.trim(),
+      registrationNote: candidateForm.registrationNote.trim(),
       desiredCourses: splitList(candidateForm.desiredCourses),
       freeSchedule: candidateForm.freeSchedule.trim(),
       callCount: editingCandidateId ? Math.max(0, Number(candidateForm.callCount) || 0) : 0,
@@ -173,13 +235,28 @@ export const PotentialCandidatesPage = () => {
         const matchesKeyword = [
           candidate.name,
           candidate.gender,
+          candidate.birthYear,
           candidate.school,
           candidate.className,
-          candidate.certificates.join(' '),
+          normalizeList(candidate.certificates).join(' '),
+          candidate.fatherName,
+          candidate.fatherPhone,
+          candidate.motherName,
+          candidate.motherPhone,
           candidate.parentInfo,
           candidate.parentPhone,
           candidate.address,
-          candidate.desiredCourses.join(' '),
+          normalizeList(candidate.learningGoals).join(' '),
+          candidate.otherLearningGoal,
+          normalizeList(candidate.englishExperience).join(' '),
+          candidate.previousEnglishCenter,
+          normalizeList(candidate.learningStyles).join(' '),
+          candidate.registrationCourse,
+          candidate.registrationShift,
+          candidate.registrationDays,
+          candidate.registrationTuition,
+          candidate.registrationNote,
+          normalizeList(candidate.desiredCourses).join(' '),
           candidate.freeSchedule,
           candidate.callCount,
           candidate.status,

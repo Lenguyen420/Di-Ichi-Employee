@@ -3,12 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react'
 import logo from '../../assets/logo/LOGO_Diichi.webp'
+import { employeeAccount } from '../../datas/appStaticData.js'
 import { Button } from '../Common/Button.jsx'
-
-const employeeAccount = {
-  email: 'nhanvien@di-ichi.edu.vn',
-  password: '123456',
-}
 
 const normalizeEmail = (value) => value.trim().toLowerCase()
 

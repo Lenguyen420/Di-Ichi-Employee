@@ -1,3 +1,66 @@
+export const candidateStatusTone = {
+  Mới: 'orange',
+  'Đang tư vấn': 'amber',
+  'Đã hẹn test': 'green',
+  'Cần gọi lại': 'rose',
+}
+
+export const candidateGenderOptions = ['Nam', 'Nữ', 'Khác']
+
+export const candidateStatusOptions = ['Tất cả', ...Object.keys(candidateStatusTone)]
+
+export const learningGoalOptions = [
+  'Học giao tiếp',
+  'Học theo chương trình Bộ GD',
+  'Chuẩn bị vào lớp 6,10',
+  'Chuẩn bị thi chứng chỉ',
+  'Mất gốc',
+  'Muốn con tự tin hơn',
+]
+
+export const englishExperienceOptions = ['Chưa từng học', 'Dưới 1 năm', '1-3 năm', 'Trên 3 năm']
+
+export const learningStyleOptions = ['Học qua trò chơi', 'Thuyết trình', 'Dự án', 'Online', 'Offline']
+
+export const emptyCandidateAppointmentForm = {
+  appointmentDateTime: '',
+  appointmentType: 'Test đầu vào',
+  appointmentRoom: 'Online',
+  appointmentStatus: 'Mới tạo',
+}
+
+export const emptyCandidateForm = {
+  id: '',
+  name: '',
+  gender: 'Nam',
+  birthYear: '',
+  school: '',
+  className: '',
+  certificates: '',
+  fatherName: '',
+  fatherPhone: '',
+  motherName: '',
+  motherPhone: '',
+  parentInfo: '',
+  parentPhone: '',
+  address: '',
+  learningGoals: [],
+  otherLearningGoal: '',
+  englishExperience: [],
+  previousEnglishCenter: '',
+  learningStyles: [],
+  registrationCourse: '',
+  registrationShift: '',
+  registrationDays: '',
+  registrationTuition: '',
+  registrationNote: '',
+  desiredCourses: '',
+  freeSchedule: '',
+  callCount: 0,
+  status: 'Mới',
+  ...emptyCandidateAppointmentForm,
+}
+
 export const potentialCandidates = [
   {
     id: 'UV-1001',

@@ -1,7 +1,7 @@
 import { Eye, Pencil, Trash2 } from 'lucide-react'
 import { Badge } from '../Common/Badge.jsx'
 import { DataTable } from '../Common/DataTable.jsx'
-import { candidateStatusTone } from './candidateConstants.js'
+import { candidateStatusTone } from '../../datas/potentialCandidatesData.js'
 
 export const PotentialCandidatesTable = ({ candidates, onDelete, onEdit, onView }) => {
   const columns = [

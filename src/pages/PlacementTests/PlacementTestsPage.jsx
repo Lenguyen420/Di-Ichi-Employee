@@ -5,6 +5,7 @@ import { Badge } from '../../components/Common/Badge.jsx'
 import { Button } from '../../components/Common/Button.jsx'
 import { Card } from '../../components/Common/Card.jsx'
 import { PlacementTestsTable } from '../../components/PlacementTests/PlacementTestsTable.jsx'
+import { placementResultStatuses } from '../../datas/appStaticData.js'
 import { placementTests } from '../../datas/employeePortalData.js'
 import { placementTestCatalog } from '../../datas/placementTestCatalogData.js'
 import { cn } from '../../utils/cn.js'
@@ -12,8 +13,6 @@ import { cn } from '../../utils/cn.js'
 const today = new Date().toISOString().slice(0, 10)
 
 const getScoreLabel = (correct, total) => `${Math.round((correct / total) * 60)}/60`
-
-const placementResultStatuses = ['Chờ đánh giá', 'Đã tư vấn', 'Cần gọi lại', 'Đã hoàn tất']
 
 const getDurationSeconds = (duration) => {
   const minutes = Number(String(duration).match(/\d+/)?.[0]) || 0
