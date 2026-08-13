@@ -53,7 +53,7 @@ export const CoursesPage = () => {
             <Table size={17} />
             Table
           </button>
-          <button
+          <button 
             className={cn(
               'inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm font-black transition',
               viewMode === 'card' ? 'bg-orange-600 text-white shadow-sm' : 'text-slate-600 hover:bg-orange-50 hover:text-orange-700',
@@ -68,6 +68,7 @@ export const CoursesPage = () => {
           </button>
         </div>
       </div>
+
       {viewMode === 'table'
         ? <CoursesTable courses={courses} onView={setSelectedCourse} />
         : <CourseCards courses={courses} onView={setSelectedCourse} />}

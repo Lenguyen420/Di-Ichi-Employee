@@ -48,9 +48,13 @@ export const CourseDetailModal = ({ classes, course, onAddStudent, onClose }) =>
         </div>
 
         <div className="max-h-[72vh] overflow-y-auto p-5">
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <Info label="Độ tuổi" value={course.age} />
+            <Info label="Cấp độ" value={course.level} />
             <Info label="Thời lượng" value={course.duration} />
             <Info label="Học phí" value={course.tuition} />
+            <Info label="Chứng chỉ đầu ra" value={course.certificate} className="md:col-span-2" />
+            <Info label="Định hướng" value={course.orientation} className="md:col-span-2" />
             <Info label="Số lớp" value={`${classes.length} lớp`} />
           </div>
 
@@ -110,9 +114,9 @@ export const CourseDetailModal = ({ classes, course, onAddStudent, onClose }) =>
   )
 }
 
-const Info = ({ label, value }) => (
-  <div className="rounded-lg border border-orange-100 p-3">
+const Info = ({ className = '', label, value }) => (
+  <div className={`rounded-lg border border-orange-100 p-3 ${className}`}>
     <p className="text-xs font-black uppercase text-slate-400">{label}</p>
-    <p className="mt-1 font-semibold text-slate-800">{value}</p>
+    <p className="mt-1 font-semibold text-slate-800">{value || 'Đang cập nhật'}</p>
   </div>
 )
