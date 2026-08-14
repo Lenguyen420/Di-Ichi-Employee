@@ -2,7 +2,7 @@ import { Clock, X } from 'lucide-react'
 import { Button } from '../Common/Button.jsx'
 import { appointmentStatuses, appointmentTypes } from '../../datas/appStaticData.js'
 
-export const AppointmentFormModal = ({ form, mode, onChange, onClose, onSubmit }) => (
+export const AppointmentFormModal = ({ candidates = [], form, mode, selectedCandidate, selectedCandidateName, onChange, onClose, onSubmit }) => (
   <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/20 p-4">
     <button className="absolute inset-0 cursor-default" type="button" onClick={onClose} aria-label="Đóng popup tạo lịch hẹn" />
     <section className="relative z-10 w-full max-w-3xl overflow-hidden rounded-lg border border-orange-100 bg-white shadow-2xl shadow-slate-950/20">
@@ -16,10 +16,26 @@ export const AppointmentFormModal = ({ form, mode, onChange, onClose, onSubmit }
         </Button>
       </div>
       <form className="grid gap-4 p-5 md:grid-cols-2" onSubmit={onSubmit}>
-        <FormField label="Tên khách hàng" required>
-          <input placeholder="Tên khách hàng" value={form.customer} onChange={(event) => onChange('customer', event.target.value)} />
+        <FormField label="Tên ứng viên" required>
+          <select value={selectedCandidateName} onChange={(event) => onChange('candidateSelect', event.target.value)}>
+            <option value="">Chọn ứng viên tiềm năng</option>
+            {candidates.map((candidate) => (
+              <option key={candidate.id} value={candidate.name}>{candidate.name}</option>
+            ))}
+          </select>
+          <input
+            className="mt-3"
+            placeholder="Hoặc nhập tên ứng viên mới"
+            value={form.customer}
+            onChange={(event) => onChange('customer', event.target.value)}
+          />
+          <p className="mt-2 text-xs font-semibold text-slate-500">
+            {selectedCandidate
+              ? `${selectedCandidate.parentPhone || 'Chưa cập nhật SĐT phụ huynh'} · ${selectedCandidate.status || 'Chưa cập nhật trạng thái'}`
+              : `Ứng viên mới: ${form.customer.trim() || 'chưa nhập tên'}`}
+          </p>
         </FormField>
-        <FormField label="SĐT">
+        <FormField label="SĐT phụ huynh">
           <input placeholder="0901 234 567" value={form.phone} onChange={(event) => onChange('phone', event.target.value)} />
         </FormField>
         <FormField label="Loại lịch hẹn">

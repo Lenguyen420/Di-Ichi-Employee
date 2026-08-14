@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
-import { LayoutGrid, Table } from 'lucide-react'
+import { Filter, LayoutGrid, Search, Table } from 'lucide-react'
 import { toast } from 'sonner'
+import { Card } from '../../components/Common/Card.jsx'
 import { CourseCards } from '../../components/Courses/CourseCards.jsx'
 import { CourseDetailModal } from '../../components/Courses/CourseDetailModal.jsx'
 import { CoursesTable } from '../../components/Courses/CoursesTable.jsx'
@@ -12,10 +13,25 @@ const updateClassSize = (students) => {
   return `${Math.min(current + 1, capacity)}/${capacity}`
 }
 
+const allAgesOption = 'Tất cả độ tuổi'
+
 export const CoursesPage = () => {
   const [selectedCourse, setSelectedCourse] = useState(null)
   const [courseClasses, setCourseClasses] = useState(classes)
   const [viewMode, setViewMode] = useState('table')
+  const [courseNameKeyword, setCourseNameKeyword] = useState('')
+  const [ageFilter, setAgeFilter] = useState(allAgesOption)
+  const ageOptions = useMemo(() => [...new Set(courses.map((course) => course.age).filter(Boolean))], [])
+  const filteredCourses = useMemo(
+    () =>
+      courses.filter((course) => {
+        const matchesName = course.name.toLowerCase().includes(courseNameKeyword.trim().toLowerCase())
+        const matchesAge = ageFilter === allAgesOption || course.age === ageFilter
+
+        return matchesName && matchesAge
+      }),
+    [ageFilter, courseNameKeyword],
+  )
   const selectedClasses = useMemo(
     () => courseClasses.filter((classItem) => classItem.courseCode === selectedCourse?.code),
     [courseClasses, selectedCourse],
@@ -69,9 +85,40 @@ export const CoursesPage = () => {
         </div>
       </div>
 
+      <Card className="rounded-lg">
+        <div className="grid gap-4 md:grid-cols-[1.2fr_0.8fr]">
+          <label className="block">
+            <span className="text-sm font-black text-slate-700">Tìm kiếm tên khóa học</span>
+            <div className="relative mt-2">
+              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input
+                className="h-11 w-full rounded-lg border border-orange-100 px-10 text-sm outline-none focus:border-orange-300 focus:ring-4 focus:ring-orange-100"
+                placeholder="Nhập tên khóa học cần tìm"
+                value={courseNameKeyword}
+                onChange={(event) => setCourseNameKeyword(event.target.value)}
+              />
+            </div>
+          </label>
+          <label className="block">
+            <span className="text-sm font-black text-slate-700">Độ tuổi</span>
+            <div className="relative mt-2">
+              <Filter className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <select
+                className="h-11 w-full rounded-lg border border-orange-100 px-10 text-sm outline-none focus:border-orange-300 focus:ring-4 focus:ring-orange-100"
+                value={ageFilter}
+                onChange={(event) => setAgeFilter(event.target.value)}
+              >
+                <option value={allAgesOption}>{allAgesOption}</option>
+                {ageOptions.map((age) => <option key={age} value={age}>{age}</option>)}
+              </select>
+            </div>
+          </label>
+        </div>
+      </Card>
+
       {viewMode === 'table'
-        ? <CoursesTable courses={courses} onView={setSelectedCourse} />
-        : <CourseCards courses={courses} onView={setSelectedCourse} />}
+        ? <CoursesTable courses={filteredCourses} onView={setSelectedCourse} />
+        : <CourseCards courses={filteredCourses} onView={setSelectedCourse} />}
       {selectedCourse && (
         <CourseDetailModal
           classes={selectedClasses}

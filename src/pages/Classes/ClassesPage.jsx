@@ -1,14 +1,39 @@
 import { useMemo, useState } from 'react'
-import { LayoutGrid, Table } from 'lucide-react'
+import { Filter, LayoutGrid, Search, Table } from 'lucide-react'
 import { ClassCards } from '../../components/Classes/ClassCards.jsx'
 import { ClassDetailModal } from '../../components/Classes/ClassDetailModal.jsx'
 import { ClassesTable } from '../../components/Classes/ClassesTable.jsx'
+import { Card } from '../../components/Common/Card.jsx'
 import { availableStudents, classes, classStudents } from '../../datas/employeePortalData.js'
 import { cn } from '../../utils/cn.js'
 
+const allCoursesOption = 'Tất cả khóa học'
+
 export const ClassesPage = () => {
   const [viewMode, setViewMode] = useState('table')
+  const [classNameKeyword, setClassNameKeyword] = useState('')
+  const [courseFilter, setCourseFilter] = useState(allCoursesOption)
   const [selectedClass, setSelectedClass] = useState(null)
+  const courseOptions = useMemo(() => {
+    const courseMap = new Map()
+    classes.forEach((classItem) => {
+      if (classItem.courseCode && classItem.course) {
+        courseMap.set(classItem.courseCode, classItem.course)
+      }
+    })
+
+    return [...courseMap.entries()].map(([code, name]) => ({ code, name }))
+  }, [])
+  const filteredClasses = useMemo(
+    () =>
+      classes.filter((classItem) => {
+        const matchesName = classItem.name.toLowerCase().includes(classNameKeyword.trim().toLowerCase())
+        const matchesCourse = courseFilter === allCoursesOption || classItem.courseCode === courseFilter
+
+        return matchesName && matchesCourse
+      }),
+    [classNameKeyword, courseFilter],
+  )
   const selectedClassStudents = useMemo(() => {
     if (!selectedClass) return []
 
@@ -57,9 +82,41 @@ export const ClassesPage = () => {
           </button>
         </div>
       </div>
+
+      <Card className="rounded-lg">
+        <div className="grid gap-4 md:grid-cols-[1.2fr_0.8fr]">
+          <label className="block">
+            <span className="text-sm font-black text-slate-700">Tìm kiếm tên lớp</span>
+            <div className="relative mt-2">
+              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input
+                className="h-11 w-full rounded-lg border border-orange-100 px-10 text-sm outline-none focus:border-orange-300 focus:ring-4 focus:ring-orange-100"
+                placeholder="Nhập tên lớp cần tìm"
+                value={classNameKeyword}
+                onChange={(event) => setClassNameKeyword(event.target.value)}
+              />
+            </div>
+          </label>
+          <label className="block">
+            <span className="text-sm font-black text-slate-700">Khóa học</span>
+            <div className="relative mt-2">
+              <Filter className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <select
+                className="h-11 w-full rounded-lg border border-orange-100 px-10 text-sm outline-none focus:border-orange-300 focus:ring-4 focus:ring-orange-100"
+                value={courseFilter}
+                onChange={(event) => setCourseFilter(event.target.value)}
+              >
+                <option value={allCoursesOption}>{allCoursesOption}</option>
+                {courseOptions.map((course) => <option key={course.code} value={course.code}>{course.name}</option>)}
+              </select>
+            </div>
+          </label>
+        </div>
+      </Card>
+
       {viewMode === 'table'
-        ? <ClassesTable classes={classes} onView={setSelectedClass} />
-        : <ClassCards classes={classes} onView={setSelectedClass} />}
+        ? <ClassesTable classes={filteredClasses} onView={setSelectedClass} />
+        : <ClassCards classes={filteredClasses} onView={setSelectedClass} />}
       {selectedClass && (
         <ClassDetailModal
           classItem={selectedClass}

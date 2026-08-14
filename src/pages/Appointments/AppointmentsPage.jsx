@@ -9,9 +9,13 @@ import { allAppointmentsOption, emptyAppointmentForm, splitDateTime, toDateTimeV
 import { Button } from '../../components/Common/Button.jsx'
 import { appointmentStatuses, appointmentTypes } from '../../datas/appStaticData.js'
 import { useAppointments } from '../../contexts/useAppointments.js'
+import { usePotentialCandidates } from '../../contexts/usePotentialCandidates.js'
+
+const normalizeCandidateName = (value) => String(value || '').trim().toLowerCase()
 
 export const AppointmentsPage = () => {
   const { appointments, addAppointment, updateAppointment, deleteAppointment } = useAppointments()
+  const { candidates } = usePotentialCandidates()
   const [keyword, setKeyword] = useState('')
   const [statusFilter, setStatusFilter] = useState(allAppointmentsOption)
   const [typeFilter, setTypeFilter] = useState(allAppointmentsOption)
@@ -43,7 +47,43 @@ export const AppointmentsPage = () => {
     [appointments, keyword, statusFilter, typeFilter],
   )
 
+  const selectedCandidate = useMemo(
+    () =>
+      candidates.find((candidate) => (
+        candidate.id === form.candidateId || normalizeCandidateName(candidate.name) === normalizeCandidateName(form.customer)
+      )) || null,
+    [candidates, form.candidateId, form.customer],
+  )
+
+  const selectedCandidateName = selectedCandidate ? selectedCandidate.name : ''
+
   const updateForm = (field, value) => {
+    if (field === 'candidateSelect') {
+      const matchedCandidate = candidates.find((candidate) => normalizeCandidateName(candidate.name) === normalizeCandidateName(value))
+
+      setForm((current) => ({
+        ...current,
+        customer: matchedCandidate ? matchedCandidate.name : '',
+        phone: matchedCandidate ? matchedCandidate.parentPhone || '' : '',
+        customerId: matchedCandidate ? matchedCandidate.customerId || '' : '',
+        candidateId: matchedCandidate ? matchedCandidate.id || '' : '',
+      }))
+      return
+    }
+
+    if (field === 'customer') {
+      const matchedCandidate = candidates.find((candidate) => normalizeCandidateName(candidate.name) === normalizeCandidateName(value))
+
+      setForm((current) => ({
+        ...current,
+        customer: value,
+        phone: matchedCandidate ? matchedCandidate.parentPhone || '' : current.phone,
+        customerId: matchedCandidate ? matchedCandidate.customerId || '' : '',
+        candidateId: matchedCandidate ? matchedCandidate.id || '' : '',
+      }))
+      return
+    }
+
     setForm((current) => ({ ...current, [field]: value }))
   }
 
@@ -57,6 +97,8 @@ export const AppointmentsPage = () => {
     setForm({
       customer: appointment.customer || '',
       phone: appointment.phone || '',
+      customerId: appointment.customerId || '',
+      candidateId: appointment.candidateId || '',
       type: appointment.type || appointmentTypes[0],
       dateTime: toDateTimeValue(appointment),
       room: appointment.room || 'Online',
@@ -76,7 +118,7 @@ export const AppointmentsPage = () => {
     event.preventDefault()
 
     if (!form.customer.trim() || !form.dateTime) {
-      toast.error('Vui lòng nhập tên khách hàng và ngày giờ hẹn.')
+      toast.error('Vui lòng nhập tên ứng viên và ngày giờ hẹn.')
       return
     }
 
@@ -86,6 +128,8 @@ export const AppointmentsPage = () => {
       time,
       customer: form.customer.trim(),
       phone: form.phone.trim(),
+      customerId: form.customerId || '',
+      candidateId: form.candidateId || '',
       type: form.type,
       room: form.room.trim(),
       status: form.status,
@@ -123,6 +167,9 @@ export const AppointmentsPage = () => {
       {showForm && (
         <AppointmentFormModal
           form={form}
+          candidates={candidates}
+          selectedCandidate={selectedCandidate}
+          selectedCandidateName={selectedCandidateName}
           mode={editingAppointmentId ? 'edit' : 'create'}
           onChange={updateForm}
           onClose={closeForm}
