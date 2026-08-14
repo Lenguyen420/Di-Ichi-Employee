@@ -11,6 +11,8 @@ export const appointmentStatusTone = {
 export const emptyAppointmentForm = {
   customer: '',
   phone: '',
+  customerId: '',
+  candidateId: '',
   type: 'Test đầu vào',
   dateTime: '',
   room: 'Online',

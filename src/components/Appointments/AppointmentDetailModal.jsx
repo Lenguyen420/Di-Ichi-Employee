@@ -19,7 +19,7 @@ export const AppointmentDetailModal = ({ appointment, onClose }) => (
       <div className="grid gap-3 p-5 md:grid-cols-2">
         <Info label="Ngày" value={appointment.date} />
         <Info label="Giờ" value={appointment.time} />
-        <Info label="SĐT" value={appointment.phone} />
+        <Info label="SĐT phụ huynh" value={appointment.phone} />
         <Info label="Loại lịch hẹn" value={appointment.type} />
         <Info label="Phòng/Kênh" value={appointment.room} />
         <div className="rounded-lg border border-orange-100 p-3">

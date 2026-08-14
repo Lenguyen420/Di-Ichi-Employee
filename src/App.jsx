@@ -1,12 +1,15 @@
 import { RouterProvider } from 'react-router-dom'
 import { AppointmentsProvider } from './contexts/AppointmentsContext.jsx'
+import { PotentialCandidatesProvider } from './contexts/PotentialCandidatesContext.jsx'
 import { router } from './routes/AppRouter.jsx'
 
 function App() {
   return (
-    <AppointmentsProvider>
-      <RouterProvider router={router} />
-    </AppointmentsProvider>
+    <PotentialCandidatesProvider>
+      <AppointmentsProvider>
+        <RouterProvider router={router} />
+      </AppointmentsProvider>
+    </PotentialCandidatesProvider>
   )
 }
 
