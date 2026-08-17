@@ -7,8 +7,8 @@ export const AppointmentsTable = ({ appointments, onDelete, onEdit, onView }) =>
   const columns = [
     { header: 'Ngày', accessorKey: 'date' },
     { header: 'Giờ', accessorKey: 'time' },
-    { header: 'Khách hàng', accessorKey: 'customer' },
-    { header: 'SĐT', cell: ({ row }) => row.original.phone || 'Chưa cập nhật' },
+    { header: 'Tên ứng viên', accessorKey: 'customer' },
+    { header: 'SĐT phụ huynh', cell: ({ row }) => row.original.phone || 'Chưa cập nhật' },
     { header: 'Loại lịch hẹn', accessorKey: 'type' },
     { header: 'Phòng/Kênh', accessorKey: 'room' },
     { header: 'Trạng thái', cell: ({ row }) => <Badge tone={appointmentStatusTone[row.original.status] || 'amber'}>{row.original.status}</Badge> },

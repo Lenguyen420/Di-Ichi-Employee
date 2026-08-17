@@ -8,6 +8,8 @@ import { PotentialCandidatesTable } from '../../components/PotentialCandidates/P
 import { useAppointments } from '../../contexts/useAppointments.js'
 import { emptyCandidateAppointmentForm, emptyCandidateForm, potentialCandidates } from '../../datas/potentialCandidatesData.js'
 import { createPotentialCandidate } from '../../services/potentialCandidatesApi.js'
+import { usePotentialCandidates } from '../../contexts/usePotentialCandidates.js'
+import { emptyCandidateAppointmentForm, emptyCandidateForm } from '../../datas/potentialCandidatesData.js'
 
 const splitList = (value) =>
   String(value || '')
@@ -170,9 +172,9 @@ const splitDateTime = (dateTime) => {
 
 export const PotentialCandidatesPage = () => {
   const { addAppointment } = useAppointments()
+  const { candidates, setCandidates } = usePotentialCandidates()
   const [keyword, setKeyword] = useState('')
   const [statusFilter, setStatusFilter] = useState('Tất cả')
-  const [candidates, setCandidates] = useState(potentialCandidates)
   const [editingCandidateId, setEditingCandidateId] = useState(null)
   const [selectedCandidate, setSelectedCandidate] = useState(null)
   const [showForm, setShowForm] = useState(false)
@@ -247,7 +249,7 @@ export const PotentialCandidatesPage = () => {
       setCandidates((current) => current.map((candidate) => (candidate.id === editingCandidateId ? savedCandidate : candidate)))
     }
 
-    if (editingCandidateId && candidateForm.appointmentDateTime) {
+    if (candidateForm.appointmentDateTime) {
       const { date, time } = splitDateTime(candidateForm.appointmentDateTime)
       addAppointment({
         date,

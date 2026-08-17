@@ -158,28 +158,26 @@ export const PotentialCandidateForm = ({ form, isSubmitting = false, mode = 'cre
               </div>
             </FormSection>
 
-            {mode === 'edit' && (
-              <FormSection title="Tạo lịch hẹn">
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                  <FormField label="Ngày giờ hẹn">
-                    <input type="datetime-local" value={form.appointmentDateTime || ''} onChange={(event) => onChange('appointmentDateTime', event.target.value)} />
-                  </FormField>
-                  <FormField label="Loại lịch hẹn">
-                    <select value={form.appointmentType || appointmentTypes[0]} onChange={(event) => onChange('appointmentType', event.target.value)}>
-                      {appointmentTypes.map((type) => <option key={type}>{type}</option>)}
-                    </select>
-                  </FormField>
-                  <FormField label="Phòng/Kênh">
-                    <input value={form.appointmentRoom || ''} onChange={(event) => onChange('appointmentRoom', event.target.value)} placeholder="Online, Room 1" />
-                  </FormField>
-                  <FormField label="Trạng thái lịch hẹn">
-                    <select value={form.appointmentStatus || appointmentStatuses[0]} onChange={(event) => onChange('appointmentStatus', event.target.value)}>
-                      {appointmentStatuses.map((status) => <option key={status}>{status}</option>)}
-                    </select>
-                  </FormField>
-                </div>
-              </FormSection>
-            )}
+            <FormSection title="Tạo lịch hẹn">
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <FormField label="Ngày giờ hẹn">
+                  <input type="datetime-local" value={form.appointmentDateTime || ''} onChange={(event) => onChange('appointmentDateTime', event.target.value)} />
+                </FormField>
+                <FormField label="Loại lịch hẹn">
+                  <select value={form.appointmentType || appointmentTypes[0]} onChange={(event) => onChange('appointmentType', event.target.value)}>
+                    {appointmentTypes.map((type) => <option key={type}>{type}</option>)}
+                  </select>
+                </FormField>
+                <FormField label="Phòng/Kênh">
+                  <input value={form.appointmentRoom || ''} onChange={(event) => onChange('appointmentRoom', event.target.value)} placeholder="Online, Room 1" />
+                </FormField>
+                <FormField label="Trạng thái lịch hẹn">
+                  <select value={form.appointmentStatus || appointmentStatuses[0]} onChange={(event) => onChange('appointmentStatus', event.target.value)}>
+                    {appointmentStatuses.map((status) => <option key={status}>{status}</option>)}
+                  </select>
+                </FormField>
+              </div>
+            </FormSection>
           </div>
 
           <div className="flex flex-wrap justify-end gap-2 border-t border-orange-100 bg-orange-50/50 px-5 py-4">

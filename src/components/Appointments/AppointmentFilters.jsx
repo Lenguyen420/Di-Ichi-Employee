@@ -9,7 +9,7 @@ export const AppointmentFilters = ({ keyword, statusFilter, typeFilter, onKeywor
       <FilterField label="Tìm kiếm">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-orange-400" size={18} />
-          <input className="!pl-10 pr-3" placeholder="Tìm theo khách hàng, SĐT, phòng, trạng thái..." value={keyword} onChange={(event) => onKeywordChange(event.target.value)} />
+          <input className="!pl-10 pr-3" placeholder="Tìm theo tên ứng viên, SĐT phụ huynh, phòng, trạng thái..." value={keyword} onChange={(event) => onKeywordChange(event.target.value)} />
         </div>
       </FilterField>
       <FilterField label="Trạng thái">
