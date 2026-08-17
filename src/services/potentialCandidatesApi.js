@@ -10,6 +10,40 @@ const withoutUndefined = (payload) =>
 
 const unwrapData = (response) => response.data?.data ?? response.data
 
+export const parsePotentialCandidatesResponse = (body = {}) => {
+  const container = body.data ?? body
+  const data = Array.isArray(container)
+    ? container
+    : [
+        container?.items,
+        container?.results,
+        container?.rows,
+        container?.records,
+        container?.candidates,
+        container?.students,
+        container?.data,
+      ].find(Array.isArray) || []
+  const pagination = body.meta
+    || container?.meta
+    || container?.pagination
+    || body.pagination
+    || (container && ('page' in container || 'size' in container || 'total' in container) ? container : null)
+
+  if (!pagination) return { data, meta: null }
+
+  const page = Number(pagination.page ?? pagination.currentPage ?? pagination.current_page ?? 1)
+  const pageSize = Number(
+    (pagination.pageSize ?? pagination.size ?? pagination.limit ?? pagination.perPage ?? pagination.per_page ?? data.length) || 20,
+  )
+  const totalItems = Number(
+    pagination.totalItems ?? pagination.totalRecords ?? pagination.total ?? pagination.count ?? data.length,
+  )
+  const totalPages = Number(pagination.totalPages ?? pagination.lastPage ?? pagination.last_page)
+    || Math.max(1, Math.ceil(totalItems / pageSize))
+
+  return { data, meta: { page, pageSize, totalItems, totalPages } }
+}
+
 export const buildCreatePotentialCandidatePayload = (form) => {
   const birthYear = Number(form.birthYear)
   return withoutUndefined({
@@ -67,10 +101,7 @@ export const buildUpdatePotentialCandidatePayload = (form) => {
 
 export const getPotentialCandidates = async (params, signal) => {
   const response = await api.get('/potential-candidates', { params, signal })
-  return {
-    data: Array.isArray(response.data?.data) ? response.data.data : [],
-    meta: response.data?.meta ?? null,
-  }
+  return parsePotentialCandidatesResponse(response.data)
 }
 
 export const getPotentialCandidate = async (candidateId) => {
