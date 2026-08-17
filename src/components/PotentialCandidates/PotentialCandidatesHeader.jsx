@@ -1,7 +1,7 @@
 import { Download, FileUp, Plus } from 'lucide-react'
 import { Button } from '../Common/Button.jsx'
 
-export const PotentialCandidatesHeader = ({ onImportFile, onToggleForm }) => (
+export const PotentialCandidatesHeader = ({ onExport, onImportFile, onToggleForm }) => (
   <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
     <div>
       <p className="text-sm font-bold text-orange-600">Ứng viên tiềm năng</p>
@@ -14,7 +14,7 @@ export const PotentialCandidatesHeader = ({ onImportFile, onToggleForm }) => (
         <FileUp size={18} /> Import
         <input className="sr-only" type="file" accept=".csv,.json,application/json,text/csv" onChange={onImportFile} />
       </label>
-      <Button variant="secondary"><Download size={18} /> Export</Button>
+      <Button variant="secondary" onClick={onExport}><Download size={18} /> Export</Button>
     </div>
   </div>
 )

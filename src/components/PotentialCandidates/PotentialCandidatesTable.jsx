@@ -3,9 +3,9 @@ import { Badge } from '../Common/Badge.jsx'
 import { DataTable } from '../Common/DataTable.jsx'
 import { candidateStatusTone } from '../../datas/potentialCandidatesData.js'
 
-export const PotentialCandidatesTable = ({ candidates, onDelete, onEdit, onView }) => {
+export const PotentialCandidatesTable = ({ candidates, onDelete, onEdit, onView, rowNumberOffset = 0 }) => {
   const columns = [
-    { header: 'STT', cell: ({ row }) => row.index + 1 },
+    { header: 'STT', cell: ({ row }) => rowNumberOffset + row.index + 1 },
     { header: 'Tên', accessorKey: 'name' },
     { header: 'Giới tính', accessorKey: 'gender' },
     { header: 'Trường', accessorKey: 'school' },
@@ -14,7 +14,7 @@ export const PotentialCandidatesTable = ({ candidates, onDelete, onEdit, onView 
       header: 'Chứng chỉ đang có',
       cell: ({ row }) => (
         <div className="flex min-w-44 flex-wrap gap-1.5">
-          {row.original.certificates.map((certificate) => <Badge key={certificate} tone="slate">{certificate}</Badge>)}
+          {(row.original.certificates || []).map((certificate) => <Badge key={certificate} tone="slate">{certificate}</Badge>)}
         </div>
       ),
     },
@@ -25,7 +25,7 @@ export const PotentialCandidatesTable = ({ candidates, onDelete, onEdit, onView 
       header: 'Khóa học mong muốn',
       cell: ({ row }) => (
         <div className="flex min-w-52 flex-wrap gap-1.5">
-          {row.original.desiredCourses.map((course) => <Badge key={course}>{course}</Badge>)}
+          {(row.original.desiredCourses || []).map((course) => <Badge key={course}>{course}</Badge>)}
         </div>
       ),
     },
