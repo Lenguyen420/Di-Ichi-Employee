@@ -7,6 +7,7 @@ import { PotentialCandidatesSearch } from '../../components/PotentialCandidates/
 import { PotentialCandidatesTable } from '../../components/PotentialCandidates/PotentialCandidatesTable.jsx'
 import { useAppointments } from '../../contexts/useAppointments.js'
 import { emptyCandidateAppointmentForm, emptyCandidateForm, potentialCandidates } from '../../datas/potentialCandidatesData.js'
+import { createPotentialCandidate } from '../../services/potentialCandidatesApi.js'
 
 const splitList = (value) =>
   String(value || '')
@@ -30,6 +31,73 @@ const buildParentInfo = (candidateForm) =>
 
 const buildParentPhone = (candidateForm) =>
   compactJoin([candidateForm.fatherPhone?.trim(), candidateForm.motherPhone?.trim(), candidateForm.parentPhone?.trim()])
+
+const guardianFields = [
+  ['fatherName', 'fatherPhone', 'cha'],
+  ['motherName', 'motherPhone', 'mẹ'],
+  ['parentInfo', 'parentPhone', 'người liên hệ khác'],
+]
+
+const validateCreateCandidate = (form) => {
+  if (!form.name.trim()) return 'Vui lòng nhập tên ứng viên.'
+  if (form.name.trim().length > 150) return 'Tên ứng viên không được vượt quá 150 ký tự.'
+
+  const incompleteGuardian = guardianFields.find(([nameField, phoneField]) =>
+    Boolean(form[nameField]?.trim()) !== Boolean(form[phoneField]?.trim()),
+  )
+  if (incompleteGuardian) return `Vui lòng nhập đủ họ tên và SĐT của ${incompleteGuardian[2]}.`
+
+  const hasGuardian = guardianFields.some(([nameField, phoneField]) => form[nameField]?.trim() && form[phoneField]?.trim())
+  if (!hasGuardian) return 'Vui lòng nhập ít nhất một người giám hộ có đủ họ tên và SĐT.'
+
+  if (form.birthYear) {
+    const birthYear = Number(form.birthYear)
+    const currentYear = new Date().getFullYear()
+    if (!Number.isInteger(birthYear) || birthYear < 1900 || birthYear > currentYear) {
+      return `Năm sinh phải từ 1900 đến ${currentYear}.`
+    }
+  }
+
+  return ''
+}
+
+const getCreateCandidateErrorMessage = (error) => {
+  const status = error.response?.status
+  const backendMessage = error.response?.data?.message || error.response?.data?.error?.message
+
+  if (backendMessage) return Array.isArray(backendMessage) ? backendMessage.join(' ') : backendMessage
+  if (status === 401) return 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.'
+  if (status === 403) return 'Bạn không có quyền tạo ứng viên.'
+  if (status === 409) return 'Không thể sinh mã ứng viên. Vui lòng thử lại.'
+  if (status === 422) return 'Tài khoản chưa được liên kết nhân sự hoặc cơ sở.'
+  if (!error.response) return 'Không thể kết nối máy chủ. Vui lòng thử lại.'
+  return 'Không thể tạo ứng viên. Vui lòng kiểm tra dữ liệu và thử lại.'
+}
+
+const mergeCreatedCandidate = (candidate = {}, localCandidate) => {
+  const guardians = Array.isArray(candidate.guardians) ? candidate.guardians : []
+  const father = guardians.find((guardian) => guardian.relationship === 'father')
+  const mother = guardians.find((guardian) => guardian.relationship === 'mother')
+  const other = guardians.find((guardian) => guardian.relationship === 'other')
+  const guardianData = {
+    fatherName: father?.name || localCandidate.fatherName,
+    fatherPhone: father?.phone || localCandidate.fatherPhone,
+    motherName: mother?.name || localCandidate.motherName,
+    motherPhone: mother?.phone || localCandidate.motherPhone,
+    parentInfo: other?.name || '',
+    parentPhone: other?.phone || '',
+  }
+
+  return {
+    ...localCandidate,
+    ...candidate,
+    ...guardianData,
+    birthYear: candidate.birthDate ? String(candidate.birthDate).slice(0, 4) : localCandidate.birthYear,
+    parentInfo: guardians.length ? buildParentInfo(guardianData) : localCandidate.parentInfo,
+    parentPhone: guardians.length ? buildParentPhone(guardianData) : localCandidate.parentPhone,
+    status: 'Mới',
+  }
+}
 
 const normalizeImportedCandidate = (candidate) => {
   const fatherName = String(candidate.fatherName || candidate.tenCha || candidate['họ tên cha'] || '').trim()
@@ -109,18 +177,25 @@ export const PotentialCandidatesPage = () => {
   const [selectedCandidate, setSelectedCandidate] = useState(null)
   const [showForm, setShowForm] = useState(false)
   const [candidateForm, setCandidateForm] = useState(emptyCandidateForm)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const updateCandidateForm = (field, value) => {
     setCandidateForm((current) => ({ ...current, [field]: value }))
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
 
     const parentInfo = buildParentInfo(candidateForm)
     const parentPhone = buildParentPhone(candidateForm)
 
-    if (!candidateForm.name.trim() || !parentInfo || !parentPhone) {
+    if (!editingCandidateId) {
+      const validationMessage = validateCreateCandidate(candidateForm)
+      if (validationMessage) {
+        toast.error(validationMessage)
+        return
+      }
+    } else if (!candidateForm.name.trim() || !parentInfo || !parentPhone) {
       toast.error('Vui lòng nhập tên ứng viên, thông tin phụ huynh và SĐT phụ huynh.')
       return
     }
@@ -156,11 +231,21 @@ export const PotentialCandidatesPage = () => {
       callCount: editingCandidateId ? Math.max(0, Number(candidateForm.callCount) || 0) : 0,
     }
 
-    setCandidates((current) => {
-      if (!editingCandidateId) return [savedCandidate, ...current]
-
-      return current.map((candidate) => (candidate.id === editingCandidateId ? savedCandidate : candidate))
-    })
+    if (!editingCandidateId) {
+      setIsSubmitting(true)
+      try {
+        const createdCandidate = await createPotentialCandidate(candidateForm)
+        const mergedCandidate = mergeCreatedCandidate(createdCandidate, savedCandidate)
+        setCandidates((current) => [mergedCandidate, ...current])
+      } catch (error) {
+        toast.error(getCreateCandidateErrorMessage(error))
+        return
+      } finally {
+        setIsSubmitting(false)
+      }
+    } else {
+      setCandidates((current) => current.map((candidate) => (candidate.id === editingCandidateId ? savedCandidate : candidate)))
+    }
 
     if (editingCandidateId && candidateForm.appointmentDateTime) {
       const { date, time } = splitDateTime(candidateForm.appointmentDateTime)
@@ -278,6 +363,7 @@ export const PotentialCandidatesPage = () => {
       {showForm && (
         <PotentialCandidateForm
           form={candidateForm}
+          isSubmitting={isSubmitting}
           mode={editingCandidateId ? 'edit' : 'create'}
           onChange={updateCandidateForm}
           onClose={() => {

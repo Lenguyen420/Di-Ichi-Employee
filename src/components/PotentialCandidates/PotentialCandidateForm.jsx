@@ -10,7 +10,7 @@ import {
   learningStyleOptions,
 } from '../../datas/potentialCandidatesData.js'
 
-export const PotentialCandidateForm = ({ form, mode = 'create', onChange, onClose, onReset, onSubmit }) => {
+export const PotentialCandidateForm = ({ form, isSubmitting = false, mode = 'create', onChange, onClose, onReset, onSubmit }) => {
   const handleCheckboxChange = (field, option, checked) => {
     const currentValues = Array.isArray(form[field]) ? form[field] : []
     onChange(field, checked ? [...currentValues, option] : currentValues.filter((value) => value !== option))
@@ -183,9 +183,9 @@ export const PotentialCandidateForm = ({ form, mode = 'create', onChange, onClos
           </div>
 
           <div className="flex flex-wrap justify-end gap-2 border-t border-orange-100 bg-orange-50/50 px-5 py-4">
-            <Button variant="ghost" type="button" onClick={onClose}>Hủy</Button>
-            <Button variant="secondary" type="button" onClick={() => onReset(emptyCandidateForm)}>Làm mới</Button>
-            <Button type="submit"><Save size={18} /> {mode === 'edit' ? 'Cập nhật ứng viên' : 'Lưu ứng viên'}</Button>
+            <Button disabled={isSubmitting} variant="ghost" type="button" onClick={onClose}>Hủy</Button>
+            <Button disabled={isSubmitting} variant="secondary" type="button" onClick={() => onReset(emptyCandidateForm)}>Làm mới</Button>
+            <Button disabled={isSubmitting} type="submit"><Save size={18} /> {isSubmitting ? 'Đang lưu...' : mode === 'edit' ? 'Cập nhật ứng viên' : 'Lưu ứng viên'}</Button>
           </div>
         </form>
       </section>
