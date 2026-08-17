@@ -4,12 +4,14 @@ import { ChevronRight, LogOut } from 'lucide-react'
 import logo from '../../assets/logo/LOGO_Diichi.webp'
 import { cn } from '../../utils/cn.js'
 import { menuItems } from './menu.js'
+import { clearAuthSession } from '../../services/authSession.js'
 
 export const Sidebar = ({ open, onClose }) => {
   const navigate = useNavigate()
 
   const handleLogout = () => {
     onClose()
+    clearAuthSession()
     toast.success('Đăng xuất thành công', {
       description: 'Bạn đã quay về màn hình đăng nhập.',
     })

@@ -9,12 +9,13 @@ import { EnrollmentPage } from '../pages/Enrollment/EnrollmentPage.jsx'
 import { ClassesPage } from '../pages/Classes/ClassesPage.jsx'
 import { PlacementTestsPage } from '../pages/PlacementTests/PlacementTestsPage.jsx'
 import { ProfilePage } from '../pages/Profile/ProfilePage.jsx'
+import { ProtectedRoute } from './ProtectedRoute.jsx'
 
 export const router = createBrowserRouter([
   { path: '/', element: <LoginPage /> },
   { path: '/login', element: <LoginPage /> },
   {
-    element: <MainLayout />,
+    element: <ProtectedRoute><MainLayout /></ProtectedRoute>,
     children: [
       { path: '/dashboard', element: <DashboardPage /> },
       { path: '/ung-vien-tiem-nang', element: <PotentialCandidatesPage /> },

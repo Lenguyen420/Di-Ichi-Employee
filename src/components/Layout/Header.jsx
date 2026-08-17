@@ -1,9 +1,15 @@
 import { Bell, Menu, Search } from 'lucide-react'
 import { headerEmployee } from '../../datas/appStaticData.js'
+import { getAuthSession } from '../../services/authSession.js'
 
-export const Header = ({ onMenu }) => (
-  <header className="sticky top-0 z-30 border-b border-orange-100 bg-white/85 px-4 py-3 shadow-sm shadow-orange-950/5 backdrop-blur-xl lg:px-6">
-    <div className="flex items-center justify-between gap-4">
+export const Header = ({ onMenu }) => {
+  const session = getAuthSession()
+  const employeeName = session?.fullName || headerEmployee.name
+  const employeeRole = session?.userType?.replaceAll('_', ' ') || headerEmployee.role
+
+  return (
+    <header className="sticky top-0 z-30 border-b border-orange-100 bg-white/85 px-4 py-3 shadow-sm shadow-orange-950/5 backdrop-blur-xl lg:px-6">
+      <div className="flex items-center justify-between gap-4">
       <div className="flex min-w-0 flex-1 items-center gap-3">
         <button
           className="group relative grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-orange-600 to-amber-500 text-white shadow-lg shadow-orange-200 ring-1 ring-orange-300 transition hover:-translate-y-0.5 hover:from-orange-700 hover:to-amber-600 hover:shadow-xl active:translate-y-0 lg:hidden"
@@ -17,7 +23,7 @@ export const Header = ({ onMenu }) => (
 
         <div className="hidden lg:block">
           <p className="text-xs font-black uppercase tracking-wide text-orange-600">Di-Ichi Employee</p>
-          <h1 className="text-xl font-black text-slate-950">Chào mừng quay lại, {headerEmployee.name}</h1>
+          <h1 className="text-xl font-black text-slate-950">Chào mừng quay lại, {employeeName}</h1>
         </div>
 
         <label className="relative hidden w-full max-w-xl md:block">
@@ -36,13 +42,14 @@ export const Header = ({ onMenu }) => (
         </button>
 
         <button className="flex min-h-12 items-center gap-3 rounded-2xl border border-orange-100 bg-white px-2 py-1.5 shadow-sm transition hover:bg-orange-50">
-          <img className="h-9 w-9 rounded-xl object-cover ring-2 ring-orange-100" src={headerEmployee.avatar} alt={headerEmployee.name} />
+          <img className="h-9 w-9 rounded-xl object-cover ring-2 ring-orange-100" src={headerEmployee.avatar} alt={employeeName} />
           <div className="hidden max-w-40 text-left sm:block">
-            <p className="truncate text-sm font-black text-slate-900">{headerEmployee.name}</p>
-            <p className="truncate text-xs font-medium text-slate-500">{headerEmployee.role}</p>
+            <p className="truncate text-sm font-black text-slate-900">{employeeName}</p>
+            <p className="truncate text-xs font-medium text-slate-500">{employeeRole}</p>
           </div>
         </button>
       </div>
-    </div>
-  </header>
-)
+      </div>
+    </header>
+  )
+}

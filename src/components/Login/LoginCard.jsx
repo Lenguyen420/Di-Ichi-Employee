@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react'
 import logo from '../../assets/logo/LOGO_Diichi.webp'
-import { employeeAccount } from '../../datas/appStaticData.js'
+import { loginStaff } from '../../services/authApi.js'
+import { saveAuthSession } from '../../services/authSession.js'
 import { Button } from '../Common/Button.jsx'
 
 const normalizeEmail = (value) => value.trim().toLowerCase()
@@ -11,11 +12,12 @@ const normalizeEmail = (value) => value.trim().toLowerCase()
 export const LoginCard = () => {
   const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
-  const [email, setEmail] = useState(employeeAccount.email)
-  const [password, setPassword] = useState(employeeAccount.password)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [rememberLogin, setRememberLogin] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
 
     const normalizedEmail = normalizeEmail(email)
@@ -26,28 +28,34 @@ export const LoginCard = () => {
       return
     }
 
-    if (normalizedEmail === employeeAccount.email && normalizedPassword === employeeAccount.password) {
-      const employeeSession = JSON.stringify({
-        email: normalizedEmail,
-        role: 'employee',
-      })
+    setIsSubmitting(true)
+    try {
+      const session = await loginStaff({ email: normalizedEmail, password: normalizedPassword })
+      if (!session?.accessToken) throw new Error('INVALID_LOGIN_RESPONSE')
 
-      if (rememberLogin) {
-        localStorage.setItem('diIchiEmployeeSession', employeeSession)
-      } else {
-        sessionStorage.setItem('diIchiEmployeeSession', employeeSession)
-      }
-
+      saveAuthSession({
+        accessToken: session.accessToken,
+        userId: session.userId,
+        userType: session.userType,
+        deviceId: session.deviceId,
+        branchId: session.branchId,
+        fullName: session.fullName,
+      }, rememberLogin)
       toast.success('Đăng nhập thành công', {
         description: 'Chào mừng bạn quay lại Di-Ichi Employee Portal.',
       })
       navigate('/dashboard')
-      return
+    } catch (error) {
+      const backendMessage = error.response?.data?.error?.message || error.response?.data?.message
+      const description = error.response?.status === 401
+        ? 'Email hoặc mật khẩu không đúng.'
+        : backendMessage || (error.message === 'INVALID_LOGIN_RESPONSE'
+          ? 'Phản hồi đăng nhập không có access token.'
+          : error.response ? 'Không thể đăng nhập. Vui lòng thử lại.' : 'Không thể kết nối máy chủ.')
+      toast.error('Đăng nhập thất bại', { description })
+    } finally {
+      setIsSubmitting(false)
     }
-
-    toast.error('Đăng nhập thất bại', {
-      description: 'Email hoặc mật khẩu không đúng.',
-    })
   }
 
   return (
@@ -57,12 +65,6 @@ export const LoginCard = () => {
         <h1 className="mt-5 text-2xl font-black text-slate-950">Đăng nhập nhân viên</h1>
         <p className="mt-2 text-sm text-slate-500">Truy cập Di-Ichi Employee để quản lý công việc, lịch làm việc và thông tin nội bộ.</p>
       </div>
-
-      {/* <div className="mt-6 rounded-2xl border border-orange-100 bg-orange-50 p-4 text-sm">
-        <p className="font-black text-orange-700">Tài khoản mặc định</p>
-        <p className="mt-2 text-slate-600">Email: <span className="font-bold text-slate-900">{employeeAccount.email}</span></p>
-        <p className="mt-1 text-slate-600">Password: <span className="font-bold text-slate-900">{employeeAccount.password}</span></p>
-      </div> */}
 
       <form className="mt-7 space-y-4" onSubmit={handleSubmit}>
         <label className="block">
@@ -114,7 +116,9 @@ export const LoginCard = () => {
           <button className="font-bold text-orange-600" type="button">Quên mật khẩu?</button>
         </div>
 
-        <Button className="w-full" type="submit">Đăng nhập</Button>
+        <Button className="w-full" disabled={isSubmitting} type="submit">
+          {isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
+        </Button>
       </form>
     </section>
   )

@@ -1,15 +1,9 @@
 import { useMemo, useState } from 'react'
 import { appointmentStatuses, appointmentTypes } from '../datas/appStaticData.js'
-import { appointments as initialAppointments } from '../datas/employeePortalData.js'
 import { AppointmentsContext } from './appointmentsContext.js'
 
 export const AppointmentsProvider = ({ children }) => {
-  const [appointments, setAppointments] = useState(
-    initialAppointments.map((appointment, index) => ({
-      id: appointment.id || `LH-${index + 1001}`,
-      ...appointment,
-    })),
-  )
+  const [appointments, setAppointments] = useState([])
 
   const addAppointment = (appointment) => {
     const savedAppointment = {
@@ -49,7 +43,10 @@ export const AppointmentsProvider = ({ children }) => {
     setAppointments((current) => current.filter((appointment) => appointment.id !== appointmentId))
   }
 
-  const value = useMemo(() => ({ appointments, addAppointment, updateAppointment, deleteAppointment }), [appointments])
+  const value = useMemo(
+    () => ({ appointments, setAppointments, addAppointment, updateAppointment, deleteAppointment }),
+    [appointments],
+  )
 
   return <AppointmentsContext.Provider value={value}>{children}</AppointmentsContext.Provider>
 }

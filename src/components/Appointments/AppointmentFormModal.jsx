@@ -2,7 +2,7 @@ import { Clock, X } from 'lucide-react'
 import { Button } from '../Common/Button.jsx'
 import { appointmentStatuses, appointmentTypes } from '../../datas/appStaticData.js'
 
-export const AppointmentFormModal = ({ candidates = [], form, mode, selectedCandidate, selectedCandidateName, onChange, onClose, onSubmit }) => (
+export const AppointmentFormModal = ({ candidates = [], form, isSubmitting = false, mode, selectedCandidate, selectedCandidateId, onChange, onClose, onSubmit }) => (
   <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/20 p-4">
     <button className="absolute inset-0 cursor-default" type="button" onClick={onClose} aria-label="Đóng popup tạo lịch hẹn" />
     <section className="relative z-10 w-full max-w-3xl overflow-hidden rounded-lg border border-orange-100 bg-white shadow-2xl shadow-slate-950/20">
@@ -17,10 +17,10 @@ export const AppointmentFormModal = ({ candidates = [], form, mode, selectedCand
       </div>
       <form className="grid gap-4 p-5 md:grid-cols-2" onSubmit={onSubmit}>
         <FormField label="Tên ứng viên" required>
-          <select value={selectedCandidateName} onChange={(event) => onChange('candidateSelect', event.target.value)}>
+          <select value={selectedCandidateId} onChange={(event) => onChange('candidateSelect', event.target.value)}>
             <option value="">Chọn ứng viên tiềm năng</option>
             {candidates.map((candidate) => (
-              <option key={candidate.id} value={candidate.name}>{candidate.name}</option>
+              <option key={candidate.id} value={candidate.id}>{candidate.name}</option>
             ))}
           </select>
           <input
@@ -55,8 +55,8 @@ export const AppointmentFormModal = ({ candidates = [], form, mode, selectedCand
           </select>
         </FormField>
         <div className="flex justify-end gap-2 border-t border-orange-100 pt-4 md:col-span-2">
-          <Button variant="ghost" type="button" onClick={onClose}>Hủy</Button>
-          <Button type="submit"><Clock size={18} /> {mode === 'edit' ? 'Cập nhật lịch hẹn' : 'Lưu lịch hẹn'}</Button>
+          <Button disabled={isSubmitting} variant="ghost" type="button" onClick={onClose}>Hủy</Button>
+          <Button disabled={isSubmitting} type="submit"><Clock size={18} /> {isSubmitting ? 'Đang lưu...' : mode === 'edit' ? 'Cập nhật lịch hẹn' : 'Lưu lịch hẹn'}</Button>
         </div>
       </form>
     </section>
