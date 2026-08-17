@@ -16,7 +16,9 @@ export const saveAuthSession = (session, rememberLogin) => {
   const otherStorage = rememberLogin ? sessionStorage : localStorage
 
   otherStorage.removeItem(AUTH_SESSION_KEY)
+  otherStorage.removeItem('accessToken')
   targetStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(session))
+  targetStorage.setItem('accessToken', session.accessToken)
 }
 
 export const clearAuthSession = () => {
