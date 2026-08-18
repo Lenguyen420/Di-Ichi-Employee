@@ -1,7 +1,7 @@
 import { X } from 'lucide-react'
 import { Badge } from '../Common/Badge.jsx'
 import { Button } from '../Common/Button.jsx'
-import { candidateStatusTone } from '../../datas/potentialCandidatesData.js'
+import { candidateStatusLabels, candidateStatusTone } from '../../datas/potentialCandidatesData.js'
 
 export const PotentialCandidateDetailModal = ({ candidate, onClose }) => {
   if (!candidate) return null
@@ -34,7 +34,7 @@ export const PotentialCandidateDetailModal = ({ candidate, onClose }) => {
           <Info label="Lịch rảnh" value={candidate.freeSchedule} />
           <div className="rounded-lg border border-orange-100 p-3">
             <p className="text-xs font-black uppercase text-slate-400">Trạng thái</p>
-            <div className="mt-2"><Badge tone={candidateStatusTone[candidate.status]}>{candidate.status}</Badge></div>
+            <div className="mt-2"><Badge tone={candidateStatusTone[candidate.status]}>{candidateStatusLabels[candidate.status] || candidate.status}</Badge></div>
           </div>
           <TagInfo label="Chứng chỉ đang có" items={candidate.certificates} tone="slate" />
           <TagInfo label="Khóa học mong muốn" items={candidate.desiredCourses} />

@@ -29,7 +29,7 @@ export const placementResultStatuses = ['Chờ đánh giá', 'Đã tư vấn', '
 export const menuItemData = [
   { label: 'Tổng quan', path: '/dashboard', icon: 'LayoutDashboard', badge: null },
   { label: 'Ứng viên tiềm năng', path: '/ung-vien-tiem-nang', icon: 'UsersRound', badge: '4' },
-  { label: 'Lịch hẹn', path: '/lich-hen', icon: 'CalendarDays', badge: '18' },
+  { label: 'Lịch hẹn', path: '/lich-hen', icon: 'CalendarDays', badge: null },
   { label: 'Khóa học', path: '/khoa-hoc', icon: 'BookOpen', badge: null },
   { label: 'Đăng ký khóa học', path: '/dang-ky-khoa-hoc', icon: 'ScrollText', badge: null },
   { label: 'Lớp học', path: '/lop-hoc', icon: 'GraduationCap', badge: null },

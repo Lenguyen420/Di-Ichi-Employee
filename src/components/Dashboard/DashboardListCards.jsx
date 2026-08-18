@@ -10,7 +10,7 @@ export const DashboardListCards = ({ appointments, customers, onOpenAppointments
         <span className="inline-flex items-center gap-1 text-sm font-bold text-orange-600">Xem chi tiết <ChevronRight size={16} /></span>
       </button>
       <div className="mt-4 space-y-3">
-        {appointments.slice(0, 3).map((item) => (
+        {appointments.length ? appointments.slice(0, 3).map((item) => (
           <button key={item.id} className="flex w-full items-center justify-between gap-3 rounded-lg bg-orange-50/70 p-3 text-left transition hover:bg-orange-50" type="button" onClick={onOpenAppointments}>
             <div>
               <p className="font-black text-slate-950">{item.time} - {item.customer}</p>
@@ -19,7 +19,7 @@ export const DashboardListCards = ({ appointments, customers, onOpenAppointments
             </div>
             <Badge tone={item.status === 'Đã xác nhận' ? 'green' : 'amber'}>{item.status}</Badge>
           </button>
-        ))}
+        )) : <p className="py-8 text-center text-sm font-semibold text-slate-500">Không có lịch hẹn trong hôm nay.</p>}
       </div>
     </Card>
 
@@ -29,7 +29,7 @@ export const DashboardListCards = ({ appointments, customers, onOpenAppointments
         <span className="inline-flex items-center gap-1 text-sm font-bold text-orange-600">Xem chi tiết <ChevronRight size={16} /></span>
       </button>
       <div className="mt-4 space-y-3">
-        {customers.slice(0, 3).map((item) => (
+        {customers.length ? customers.slice(0, 3).map((item) => (
           <button key={item.id} className="flex w-full items-center justify-between gap-3 rounded-lg border border-orange-100 p-3 text-left transition hover:border-orange-200 hover:bg-orange-50/50" type="button" onClick={onOpenCandidates}>
             <div>
               <p className="font-black text-slate-950">{item.name}</p>
@@ -38,7 +38,7 @@ export const DashboardListCards = ({ appointments, customers, onOpenAppointments
             </div>
             <Badge>{item.status}</Badge>
           </button>
-        ))}
+        )) : <p className="py-8 text-center text-sm font-semibold text-slate-500">Chưa có ứng viên mới.</p>}
       </div>
     </Card>
   </div>

@@ -1,13 +1,17 @@
-import { CalendarClock, CheckCircle2, ChevronRight, PhoneCall, UsersRound } from 'lucide-react'
+import { CalendarClock, CheckCircle2, ChevronRight, UsersRound } from 'lucide-react'
 import { Badge } from '../Common/Badge.jsx'
 import { Card } from '../Common/Card.jsx'
 
-const icons = [PhoneCall, UsersRound, CalendarClock, CheckCircle2]
+const icons = {
+  'new-candidates': UsersRound,
+  'today-appointments': CalendarClock,
+  'pending-tasks': CheckCircle2,
+}
 
 export const DashboardKpiCards = ({ kpis, onSelect }) => (
-  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-    {kpis.map((item, index) => {
-      const Icon = icons[index]
+  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    {kpis.map((item) => {
+      const Icon = icons[item.id]
       return (
         <button key={item.id} className="text-left" type="button" onClick={() => onSelect(item)}>
           <Card className="h-full rounded-lg transition hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-md">

@@ -2,14 +2,14 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 import { Badge } from '../Common/Badge.jsx'
 import { Card } from '../Common/Card.jsx'
 
-export const CalledCandidatesChart = ({ data }) => (
+export const CalledCandidatesChart = ({ data, todayIncrease = 0 }) => (
   <Card className="rounded-lg">
     <div className="mb-4 flex items-center justify-between">
       <div>
         <h2 className="text-lg font-black text-slate-950">Biểu đồ ứng viên đã gọi</h2>
         <p className="text-sm text-slate-500">Số ứng viên đã được gọi theo tháng.</p>
       </div>
-      <Badge tone="green">+14</Badge>
+      <Badge tone="green">+{todayIncrease}</Badge>
     </div>
     <div className="h-72">
       <ResponsiveContainer width="100%" height="100%">
