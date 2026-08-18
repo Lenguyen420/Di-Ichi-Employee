@@ -10,12 +10,20 @@ import { placementTests } from '../../datas/employeePortalData.js'
 export const PlacementTestsPage = () => {
   const [results, setResults] = useState(placementTests)
   const [searchName, setSearchName] = useState('')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
   const [editingResult, setEditingResult] = useState(null)
   const [editingStatus, setEditingStatus] = useState(placementResultStatuses[0])
 
   const filteredResults = useMemo(
-    () => results.filter((item) => item.customer.toLowerCase().includes(searchName.trim().toLowerCase())),
-    [results, searchName],
+    () => results.filter((item) => {
+      const matchesName = item.customer.toLowerCase().includes(searchName.trim().toLowerCase())
+      const matchesDateFrom = !dateFrom || item.date >= dateFrom
+      const matchesDateTo = !dateTo || item.date <= dateTo
+
+      return matchesName && matchesDateFrom && matchesDateTo
+    }),
+    [dateFrom, dateTo, results, searchName],
   )
 
   const openEditStatus = (result) => {
@@ -42,18 +50,25 @@ export const PlacementTestsPage = () => {
       </div>
 
       <Card className="rounded-lg">
-        <label className="block">
-          <span className="text-sm font-black text-slate-700">Lọc theo tên học sinh</span>
-          <div className="relative mt-2">
-            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input
-              className="h-11 w-full rounded-lg border border-orange-100 px-10 text-sm outline-none focus:border-orange-300 focus:ring-4 focus:ring-orange-100"
-              placeholder="Nhập tên học sinh cần tìm"
-              value={searchName}
-              onChange={(event) => setSearchName(event.target.value)}
-            />
-          </div>
-        </label>
+        <div className="grid gap-3 lg:grid-cols-[minmax(260px,1fr)_180px_180px]">
+          <FilterField label="Lọc theo tên học sinh">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input
+                className="!pl-10"
+                placeholder="Nhập tên học sinh cần tìm"
+                value={searchName}
+                onChange={(event) => setSearchName(event.target.value)}
+              />
+            </div>
+          </FilterField>
+          <FilterField label="Từ ngày">
+            <input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} />
+          </FilterField>
+          <FilterField label="Đến ngày">
+            <input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} />
+          </FilterField>
+        </div>
       </Card>
 
       <PlacementTestsTable placementTests={filteredResults} onEditStatus={openEditStatus} />
@@ -71,6 +86,15 @@ export const PlacementTestsPage = () => {
     </div>
   )
 }
+
+const FilterField = ({ children, label }) => (
+  <label className="block">
+    <span className="text-sm font-black text-slate-700">{label}</span>
+    <div className="mt-2 [&_input]:h-11 [&_input]:w-full [&_input]:rounded-lg [&_input]:border [&_input]:border-orange-100 [&_input]:px-3 [&_input]:text-sm [&_input]:outline-none [&_input]:transition [&_input]:focus:border-orange-300 [&_input]:focus:ring-4 [&_input]:focus:ring-orange-100">
+      {children}
+    </div>
+  </label>
+)
 
 const EditStatusModal = ({ result, status, statuses, onChange, onClose, onSave }) => (
   <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/20 p-4">
