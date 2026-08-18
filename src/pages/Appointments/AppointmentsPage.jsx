@@ -63,6 +63,8 @@ export const AppointmentsPage = () => {
   const [keyword, setKeyword] = useState('')
   const [statusFilter, setStatusFilter] = useState(allAppointmentsOption)
   const [typeFilter, setTypeFilter] = useState(allAppointmentsOption)
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
   const [form, setForm] = useState(emptyAppointmentForm)
   const [showForm, setShowForm] = useState(false)
   const [editingAppointmentId, setEditingAppointmentId] = useState(null)
@@ -262,9 +264,13 @@ export const AppointmentsPage = () => {
       {selectedAppointment && <AppointmentDetailModal appointment={selectedAppointment} onClose={() => setSelectedAppointment(null)} />}
 
       <AppointmentFilters
+        dateFrom={dateFrom}
+        dateTo={dateTo}
         keyword={keyword}
         statusFilter={statusFilter}
         typeFilter={typeFilter}
+        onDateFromChange={(value) => { setDateFrom(value); setPage(1) }}
+        onDateToChange={(value) => { setDateTo(value); setPage(1) }}
         onKeywordChange={(value) => { setKeyword(value); setPage(1) }}
         onStatusFilterChange={(value) => { setStatusFilter(value); setPage(1) }}
         onTypeFilterChange={(value) => { setTypeFilter(value); setPage(1) }}

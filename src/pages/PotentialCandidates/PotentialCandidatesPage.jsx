@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { PotentialCandidateDetailModal } from '../../components/PotentialCandidates/PotentialCandidateDetailModal.jsx'
 import { PotentialCandidateForm } from '../../components/PotentialCandidates/PotentialCandidateForm.jsx'
 import { PotentialCandidatesHeader } from '../../components/PotentialCandidates/PotentialCandidatesHeader.jsx'
+import { PotentialCandidatesOverviewCards } from '../../components/PotentialCandidates/PotentialCandidatesOverviewCards.jsx'
 import { PotentialCandidatesSearch } from '../../components/PotentialCandidates/PotentialCandidatesSearch.jsx'
 import { PotentialCandidatesTable } from '../../components/PotentialCandidates/PotentialCandidatesTable.jsx'
 import { useAppointments } from '../../contexts/useAppointments.js'
@@ -158,11 +159,62 @@ const getDownloadName = (contentDisposition, format) => {
   return match ? decodeURIComponent(match[1].replace(/"$/, '')) : `ung-vien-tiem-nang.${format}`
 }
 
+const overviewStages = [
+  {
+    id: 'lead',
+    label: 'Lead',
+    description: 'Ứng viên đang chăm sóc',
+    iconClassName: 'bg-orange-50 text-orange-600',
+    statuses: ['lead', 'mới', 'đang tư vấn', 'đã hẹn test', 'cần gọi lại'],
+  },
+  {
+    id: 'studying',
+    label: 'Đang học',
+    description: 'Học viên đã vào lớp',
+    iconClassName: 'bg-emerald-50 text-emerald-600',
+    statuses: ['đang học'],
+  },
+  {
+    id: 'reserved',
+    label: 'Bảo lưu',
+    description: 'Học viên tạm bảo lưu',
+    iconClassName: 'bg-amber-50 text-amber-600',
+    statuses: ['bảo lưu', 'bao lưu'],
+  },
+  {
+    id: 'stopped',
+    label: 'Nghỉ học',
+    description: 'Học viên đã nghỉ',
+    iconClassName: 'bg-rose-50 text-rose-600',
+    statuses: ['nghỉ học', 'nghi học'],
+  },
+]
+
+const leadStageId = overviewStages[0].id
+
+const normalizeStageStatus = (value) => String(value || '').trim().toLowerCase()
+
+const getCandidateOverviewStage = (candidate) => {
+  const status = normalizeStageStatus(
+    candidate.overviewStatus
+      ?? candidate.lifecycleStatus
+      ?? candidate.studentStatus
+      ?? candidate.learningStatus
+      ?? candidate.status,
+  )
+  const matchedStage = overviewStages.find((stage) => stage.statuses.includes(status))
+
+  return matchedStage?.id || leadStageId
+}
+
 export const PotentialCandidatesPage = () => {
   const { addAppointment } = useAppointments()
   const { candidates, setCandidates } = usePotentialCandidates()
   const [keyword, setKeyword] = useState('')
   const [statusFilter, setStatusFilter] = useState(candidateStatusOptions[0])
+  const [appointmentDateFrom, setAppointmentDateFrom] = useState('')
+  const [appointmentDateTo, setAppointmentDateTo] = useState('')
+  const [selectedOverviewStage, setSelectedOverviewStage] = useState(leadStageId)
   const [editingCandidateId, setEditingCandidateId] = useState(null)
   const [selectedCandidate, setSelectedCandidate] = useState(null)
   const [showForm, setShowForm] = useState(false)
@@ -206,6 +258,22 @@ export const PotentialCandidatesPage = () => {
   }, [listParams, reloadKey, setCandidates])
 
   const reloadCandidates = () => setReloadKey((current) => current + 1)
+
+  const overviewCards = useMemo(() => {
+    const counts = Object.fromEntries(overviewStages.map((stage) => [stage.id, 0]))
+    candidates.forEach((candidate) => {
+      counts[getCandidateOverviewStage(candidate)] += 1
+    })
+
+    return overviewStages.map((stage) => ({ ...stage, count: counts[stage.id] || 0 }))
+  }, [candidates])
+
+  const visibleCandidates = useMemo(
+    () => candidates.filter((candidate) => getCandidateOverviewStage(candidate) === selectedOverviewStage),
+    [candidates, selectedOverviewStage],
+  )
+
+  const selectedOverviewLabel = overviewStages.find((stage) => stage.id === selectedOverviewStage)?.label || 'Lead'
 
   const updateCandidateForm = (field, value) => {
     setCandidateForm((current) => ({ ...current, [field]: value }))
@@ -336,9 +404,33 @@ export const PotentialCandidatesPage = () => {
         onImportFile={handleImportFile}
         onToggleForm={handleCreateCandidate}
       />
+
+      <PotentialCandidatesOverviewCards
+        items={overviewCards}
+        selectedId={selectedOverviewStage}
+        onSelect={setSelectedOverviewStage}
+      />
+
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p className="text-sm font-black text-slate-800">Bộ lọc {selectedOverviewLabel}</p>
+          <p className="mt-1 text-xs font-semibold text-slate-500">Danh sách bên dưới đang hiển thị theo card tổng quan đã chọn.</p>
+        </div>
+      </div>
+
       <PotentialCandidatesSearch
+        appointmentDateFrom={appointmentDateFrom}
+        appointmentDateTo={appointmentDateTo}
         keyword={keyword}
         statusFilter={statusFilter}
+        onAppointmentDateFromChange={(value) => {
+          setAppointmentDateFrom(value)
+          setPage(1)
+        }}
+        onAppointmentDateToChange={(value) => {
+          setAppointmentDateTo(value)
+          setPage(1)
+        }}
         onKeywordChange={(value) => {
           setKeyword(value)
           setPage(1)
@@ -372,9 +464,9 @@ export const PotentialCandidatesPage = () => {
         <div className="rounded-2xl border border-orange-100 bg-white px-5 py-12 text-center text-sm font-semibold text-slate-500">
           Đang tải danh sách ứng viên...
         </div>
-      ) : candidates.length ? (
+      ) : visibleCandidates.length ? (
         <PotentialCandidatesTable
-          candidates={candidates}
+          candidates={visibleCandidates}
           onDelete={handleDeleteCandidate}
           onEdit={handleEditCandidate}
           onView={(candidate) => loadCandidateDetail(candidate, setSelectedCandidate)}
@@ -382,7 +474,7 @@ export const PotentialCandidatesPage = () => {
         />
       ) : (
         <div className="rounded-2xl border border-orange-100 bg-white px-5 py-12 text-center text-sm font-semibold text-slate-500">
-          Không tìm thấy ứng viên phù hợp.
+          Không tìm thấy ứng viên phù hợp trong nhóm {selectedOverviewLabel}.
         </div>
       )}
 
