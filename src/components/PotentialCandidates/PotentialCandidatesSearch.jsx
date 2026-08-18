@@ -1,20 +1,30 @@
-import { Search } from 'lucide-react'
+import { RotateCcw, Search } from 'lucide-react'
 import { Card } from '../Common/Card.jsx'
-import { candidateStatusOptions } from '../../datas/potentialCandidatesData.js'
+import { candidateStatusLabels, candidateStatusOptions } from '../../datas/potentialCandidatesData.js'
 
 export const PotentialCandidatesSearch = ({
   appointmentDateFrom,
   appointmentDateTo,
+  genderFilter,
   keyword,
+  schoolFilter,
   showStatusFilter = true,
+  sortBy,
+  sortOrder,
   statusFilter,
   onAppointmentDateFromChange,
   onAppointmentDateToChange,
+  onGenderFilterChange,
   onKeywordChange,
+  onReset,
+  onSchoolFilterChange,
+  onSortByChange,
+  onSortOrderChange,
   onStatusFilterChange,
+  schoolOptions = [],
 }) => (
   <Card className="rounded-lg">
-    <div className={showStatusFilter ? 'grid gap-3 lg:grid-cols-[minmax(260px,1fr)_180px_180px_180px]' : 'grid gap-3 lg:grid-cols-[minmax(260px,1fr)_180px_180px]'}>
+    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
       <FilterField label="Tìm kiếm" className="xl:min-w-0">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400" size={18} />
@@ -32,16 +42,49 @@ export const PotentialCandidatesSearch = ({
             value={statusFilter}
             onChange={(event) => onStatusFilterChange(event.target.value)}
           >
-            {candidateStatusOptions.map((status) => <option key={status}>{status}</option>)}
+            {candidateStatusOptions.map((status) => <option key={status} value={status}>{candidateStatusLabels[status] || status}</option>)}
           </select>
         </FilterField>
       )}
+      <FilterField label="Giới tính">
+        <select value={genderFilter} onChange={(event) => onGenderFilterChange(event.target.value)}>
+          <option value="">Tất cả</option>
+          <option value="Nam">Nam</option>
+          <option value="Nữ">Nữ</option>
+          <option value="Khác">Khác</option>
+        </select>
+      </FilterField>
+      <FilterField label="Trường học">
+        <select value={schoolFilter} onChange={(event) => onSchoolFilterChange(event.target.value)}>
+          <option value="">Tất cả</option>
+          {schoolOptions.map((school) => <option key={school} value={school}>{school}</option>)}
+        </select>
+      </FilterField>
       <FilterField label="Lịch từ ngày">
         <input type="date" value={appointmentDateFrom} onChange={(event) => onAppointmentDateFromChange(event.target.value)} />
       </FilterField>
       <FilterField label="Đến ngày">
         <input type="date" value={appointmentDateTo} onChange={(event) => onAppointmentDateToChange(event.target.value)} />
       </FilterField>
+      <FilterField label="Sắp xếp theo">
+        <select value={sortBy} onChange={(event) => onSortByChange(event.target.value)}>
+          <option value="createdAt">Ngày tạo</option>
+          <option value="updatedAt">Ngày cập nhật</option>
+          <option value="name">Tên ứng viên</option>
+          <option value="code">Mã ứng viên</option>
+        </select>
+      </FilterField>
+      <FilterField label="Thứ tự">
+        <select value={sortOrder} onChange={(event) => onSortOrderChange(event.target.value)}>
+          <option value="desc">Giảm dần</option>
+          <option value="asc">Tăng dần</option>
+        </select>
+      </FilterField>
+    </div>
+    <div className="mt-4 flex justify-end">
+      <button className="inline-flex items-center gap-2 rounded-lg border border-orange-200 px-3 py-2 text-sm font-bold text-orange-700 transition hover:bg-orange-50" type="button" onClick={onReset}>
+        <RotateCcw size={16} /> Xóa bộ lọc
+      </button>
     </div>
   </Card>
 )

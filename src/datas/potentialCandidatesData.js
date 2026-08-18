@@ -1,8 +1,17 @@
 export const candidateStatusTone = {
-  Mới: 'orange',
-  'Đang tư vấn': 'amber',
-  'Đã hẹn test': 'green',
-  'Cần gọi lại': 'rose',
+  potential: 'orange',
+  trial: 'amber',
+  active: 'green',
+  reserved: 'amber',
+  stopped: 'rose',
+}
+
+export const candidateStatusLabels = {
+  potential: 'Tiềm năng',
+  trial: 'Học thử',
+  active: 'Đang học',
+  reserved: 'Bảo lưu',
+  stopped: 'Nghỉ học',
 }
 
 export const candidateGenderOptions = ['Nam', 'Nữ', 'Khác']
@@ -57,7 +66,7 @@ export const emptyCandidateForm = {
   desiredCourses: '',
   freeSchedule: '',
   callCount: 0,
-  status: 'Mới',
+  status: 'potential',
   ...emptyCandidateAppointmentForm,
 }
 

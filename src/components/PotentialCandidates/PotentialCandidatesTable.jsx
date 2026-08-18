@@ -1,7 +1,7 @@
 import { Eye, Pencil, Trash2 } from 'lucide-react'
 import { Badge } from '../Common/Badge.jsx'
 import { DataTable } from '../Common/DataTable.jsx'
-import { candidateStatusTone } from '../../datas/potentialCandidatesData.js'
+import { candidateStatusLabels, candidateStatusTone } from '../../datas/potentialCandidatesData.js'
 
 export const PotentialCandidatesTable = ({ candidates, onDelete, onEdit, onView, rowNumberOffset = 0 }) => {
   const columns = [
@@ -31,7 +31,7 @@ export const PotentialCandidatesTable = ({ candidates, onDelete, onEdit, onView,
     },
     { header: 'Lịch rảnh', accessorKey: 'freeSchedule' },
     { header: 'Số lần gọi', cell: ({ row }) => row.original.callCount ?? 0 },
-    { header: 'Trạng thái', cell: ({ row }) => <Badge tone={candidateStatusTone[row.original.status]}>{row.original.status}</Badge> },
+    { header: 'Trạng thái', cell: ({ row }) => <Badge tone={candidateStatusTone[row.original.status]}>{candidateStatusLabels[row.original.status] || row.original.status}</Badge> },
     {
       header: 'Thao tác',
       cell: ({ row }) => (
