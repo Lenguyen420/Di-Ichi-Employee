@@ -6,6 +6,7 @@ export const PotentialCandidatesSearch = ({
   appointmentDateFrom,
   appointmentDateTo,
   keyword,
+  showStatusFilter = true,
   statusFilter,
   onAppointmentDateFromChange,
   onAppointmentDateToChange,
@@ -13,7 +14,7 @@ export const PotentialCandidatesSearch = ({
   onStatusFilterChange,
 }) => (
   <Card className="rounded-lg">
-    <div className="grid gap-3 lg:grid-cols-[minmax(260px,1fr)_180px_180px_180px]">
+    <div className={showStatusFilter ? 'grid gap-3 lg:grid-cols-[minmax(260px,1fr)_180px_180px_180px]' : 'grid gap-3 lg:grid-cols-[minmax(260px,1fr)_180px_180px]'}>
       <FilterField label="Tìm kiếm" className="xl:min-w-0">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400" size={18} />
@@ -25,14 +26,16 @@ export const PotentialCandidatesSearch = ({
           />
         </div>
       </FilterField>
-      <FilterField label="Trạng thái">
-        <select
-          value={statusFilter}
-          onChange={(event) => onStatusFilterChange(event.target.value)}
-        >
-          {candidateStatusOptions.map((status) => <option key={status}>{status}</option>)}
-        </select>
-      </FilterField>
+      {showStatusFilter && (
+        <FilterField label="Trạng thái">
+          <select
+            value={statusFilter}
+            onChange={(event) => onStatusFilterChange(event.target.value)}
+          >
+            {candidateStatusOptions.map((status) => <option key={status}>{status}</option>)}
+          </select>
+        </FilterField>
+      )}
       <FilterField label="Lịch từ ngày">
         <input type="date" value={appointmentDateFrom} onChange={(event) => onAppointmentDateFromChange(event.target.value)} />
       </FilterField>
