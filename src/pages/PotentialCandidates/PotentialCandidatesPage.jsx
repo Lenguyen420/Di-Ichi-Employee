@@ -275,6 +275,12 @@ export const PotentialCandidatesPage = () => {
 
   const selectedOverviewLabel = overviewStages.find((stage) => stage.id === selectedOverviewStage)?.label || 'Lead'
 
+  const handleOverviewStageSelect = (stageId) => {
+    setSelectedOverviewStage(stageId)
+    setPage(1)
+    if (stageId !== leadStageId) setStatusFilter(candidateStatusOptions[0])
+  }
+
   const updateCandidateForm = (field, value) => {
     setCandidateForm((current) => ({ ...current, [field]: value }))
   }
@@ -408,7 +414,7 @@ export const PotentialCandidatesPage = () => {
       <PotentialCandidatesOverviewCards
         items={overviewCards}
         selectedId={selectedOverviewStage}
-        onSelect={setSelectedOverviewStage}
+        onSelect={handleOverviewStageSelect}
       />
 
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -422,6 +428,7 @@ export const PotentialCandidatesPage = () => {
         appointmentDateFrom={appointmentDateFrom}
         appointmentDateTo={appointmentDateTo}
         keyword={keyword}
+        showStatusFilter={selectedOverviewStage === leadStageId}
         statusFilter={statusFilter}
         onAppointmentDateFromChange={(value) => {
           setAppointmentDateFrom(value)
