@@ -13,7 +13,7 @@ import {
   emptyCandidateAppointmentForm,
   emptyCandidateForm,
 } from '../../datas/potentialCandidatesData.js'
-import { createAppointment, getAppointments } from '../../services/appointmentsApi.js'
+import { createAppointment } from '../../services/appointmentsApi.js'
 import {
   createPotentialCandidate,
   deletePotentialCandidate,
@@ -212,13 +212,6 @@ export const PotentialCandidatesPage = () => {
   const { candidates, setCandidates } = usePotentialCandidates()
   const [keyword, setKeyword] = useState('')
   const [statusFilter, setStatusFilter] = useState(candidateStatusOptions[0])
-  const [appointmentDateFrom, setAppointmentDateFrom] = useState('')
-  const [appointmentDateTo, setAppointmentDateTo] = useState('')
-  const [appointmentCandidateIds, setAppointmentCandidateIds] = useState(null)
-  const [genderFilter, setGenderFilter] = useState('')
-  const [schoolFilter, setSchoolFilter] = useState('')
-  const [sortBy, setSortBy] = useState('createdAt')
-  const [sortOrder, setSortOrder] = useState('desc')
   const [selectedOverviewStage, setSelectedOverviewStage] = useState(leadStageId)
   const [editingCandidateId, setEditingCandidateId] = useState(null)
   const [selectedCandidate, setSelectedCandidate] = useState(null)
@@ -229,14 +222,12 @@ export const PotentialCandidatesPage = () => {
   const [reloadKey, setReloadKey] = useState(0)
   const [page, setPage] = useState(1)
 
-  const listParams = useMemo(() => ({ sortBy, sortOrder }), [sortBy, sortOrder])
-
   useEffect(() => {
     const controller = new AbortController()
     const loadCandidates = async () => {
       setIsLoading(true)
       try {
-        const result = await getAllPotentialCandidates(listParams, controller.signal)
+        const result = await getAllPotentialCandidates({ sortBy: 'createdAt', sortOrder: 'desc' }, controller.signal)
         setCandidates(result.map(normalizeCandidate))
       } catch (error) {
         if (error.code !== 'ERR_CANCELED') {
@@ -252,47 +243,7 @@ export const PotentialCandidatesPage = () => {
     return () => {
       controller.abort()
     }
-  }, [listParams, reloadKey, setCandidates])
-
-  useEffect(() => {
-    if (!appointmentDateFrom && !appointmentDateTo) {
-      setAppointmentCandidateIds(null)
-      return undefined
-    }
-
-    const controller = new AbortController()
-    const loadAppointmentCandidates = async () => {
-      try {
-        const params = {
-          dateFrom: appointmentDateFrom || undefined,
-          dateTo: appointmentDateTo || undefined,
-          page: 1,
-          size: 100,
-          sortBy: 'scheduledAt',
-          sortOrder: 'asc',
-        }
-        const firstPage = await getAppointments(params, controller.signal)
-        const totalPages = Math.max(1, Math.ceil(firstPage.meta.total / firstPage.meta.size))
-        const remainingPages = totalPages > 1
-          ? await Promise.all(Array.from({ length: totalPages - 1 }, (_, index) =>
-            getAppointments({ ...params, page: index + 2 }, controller.signal)))
-          : []
-        const ids = [firstPage, ...remainingPages]
-          .flatMap((result) => result.data)
-          .map((appointment) => appointment.candidateId)
-          .filter(Boolean)
-        setAppointmentCandidateIds(new Set(ids))
-      } catch (error) {
-        if (error.code !== 'ERR_CANCELED') {
-          toast.error(getApiErrorMessage(error, 'Không thể lọc ứng viên theo ngày hẹn.'))
-          setAppointmentCandidateIds(new Set())
-        }
-      }
-    }
-
-    loadAppointmentCandidates()
-    return () => controller.abort()
-  }, [appointmentDateFrom, appointmentDateTo])
+  }, [reloadKey, setCandidates])
 
   const reloadCandidates = () => setReloadKey((current) => current + 1)
 
@@ -305,15 +256,10 @@ export const PotentialCandidatesPage = () => {
     return overviewStages.map((stage) => ({ ...stage, count: counts[stage.id] || 0 }))
   }, [candidates])
 
-  const schoolOptions = useMemo(() => [...new Set(candidates.map((candidate) => candidate.school).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'vi')), [candidates])
-
   const filteredCandidates = useMemo(() => {
     const searchValue = normalizeSearchText(keyword)
     return candidates.filter((candidate) => {
       if (statusFilter !== candidateStatusOptions[0] && candidate.status !== statusFilter) return false
-      if (genderFilter && candidate.gender !== genderFilter) return false
-      if (schoolFilter && candidate.school !== schoolFilter) return false
-      if (appointmentCandidateIds && !appointmentCandidateIds.has(candidate.id)) return false
       if (!searchValue) return true
 
       const searchableValues = [
@@ -337,7 +283,7 @@ export const PotentialCandidatesPage = () => {
       ]
       return searchableValues.some((value) => normalizeSearchText(value).includes(searchValue))
     })
-  }, [appointmentCandidateIds, candidates, genderFilter, keyword, schoolFilter, statusFilter])
+  }, [candidates, keyword, statusFilter])
 
   const stageCandidates = useMemo(
     () => filteredCandidates.filter((candidate) => getCandidateOverviewStage(candidate) === selectedOverviewStage),
@@ -365,12 +311,6 @@ export const PotentialCandidatesPage = () => {
   const resetFilters = () => {
     setKeyword('')
     setStatusFilter(candidateStatusOptions[0])
-    setGenderFilter('')
-    setSchoolFilter('')
-    setAppointmentDateFrom('')
-    setAppointmentDateTo('')
-    setSortBy('createdAt')
-    setSortOrder('desc')
     setPage(1)
   }
 
@@ -501,45 +441,14 @@ export const PotentialCandidatesPage = () => {
       </div>
 
       <PotentialCandidatesSearch
-        appointmentDateFrom={appointmentDateFrom}
-        appointmentDateTo={appointmentDateTo}
-        genderFilter={genderFilter}
         keyword={keyword}
-        schoolFilter={schoolFilter}
-        schoolOptions={schoolOptions}
         showStatusFilter={selectedOverviewStage === leadStageId}
-        sortBy={sortBy}
-        sortOrder={sortOrder}
         statusFilter={statusFilter}
-        onAppointmentDateFromChange={(value) => {
-          setAppointmentDateFrom(value)
-          setPage(1)
-        }}
-        onAppointmentDateToChange={(value) => {
-          setAppointmentDateTo(value)
-          setPage(1)
-        }}
-        onGenderFilterChange={(value) => {
-          setGenderFilter(value)
-          setPage(1)
-        }}
         onKeywordChange={(value) => {
           setKeyword(value)
           setPage(1)
         }}
         onReset={resetFilters}
-        onSchoolFilterChange={(value) => {
-          setSchoolFilter(value)
-          setPage(1)
-        }}
-        onSortByChange={(value) => {
-          setSortBy(value)
-          setPage(1)
-        }}
-        onSortOrderChange={(value) => {
-          setSortOrder(value)
-          setPage(1)
-        }}
         onStatusFilterChange={(value) => {
           setStatusFilter(value)
           setPage(1)
