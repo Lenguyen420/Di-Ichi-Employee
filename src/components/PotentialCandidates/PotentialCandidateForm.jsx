@@ -3,6 +3,7 @@ import { Button } from '../Common/Button.jsx'
 import { appointmentStatuses, appointmentTypes } from '../../datas/appStaticData.js'
 import {
   candidateGenderOptions,
+  candidateStatusLabels,
   candidateStatusTone,
   emptyCandidateForm,
   englishExperienceOptions,
@@ -144,7 +145,7 @@ export const PotentialCandidateForm = ({ form, isSubmitting = false, mode = 'cre
                 </FormField>
                 <FormField label="Trạng thái">
                   <select value={form.status} onChange={(event) => onChange('status', event.target.value)}>
-                    {Object.keys(candidateStatusTone).map((status) => <option key={status}>{status}</option>)}
+                    {Object.keys(candidateStatusTone).map((status) => <option key={status} value={status}>{candidateStatusLabels[status]}</option>)}
                   </select>
                 </FormField>
                 {mode === 'edit' && (

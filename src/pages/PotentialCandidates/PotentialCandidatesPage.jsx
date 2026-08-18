@@ -13,14 +13,11 @@ import {
   emptyCandidateAppointmentForm,
   emptyCandidateForm,
 } from '../../datas/potentialCandidatesData.js'
+import { createAppointment, getAppointments } from '../../services/appointmentsApi.js'
 import {
   createPotentialCandidate,
-  createPotentialCandidateAppointment,
   deletePotentialCandidate,
-  exportPotentialCandidates,
-  getPotentialCandidate,
-  getPotentialCandidates,
-  importPotentialCandidates,
+  getAllPotentialCandidates,
   updatePotentialCandidate,
 } from '../../services/potentialCandidatesApi.js'
 
@@ -36,6 +33,12 @@ const normalizeList = (value) => {
 }
 
 const compactJoin = (items, separator = ', ') => items.filter(Boolean).join(separator)
+
+const normalizeSearchText = (value) => String(value ?? '')
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase()
+  .trim()
 
 const guardianFields = [
   ['fatherName', 'fatherPhone', 'cha'],
@@ -86,6 +89,8 @@ const normalizeCandidate = (candidate = {}) => {
   const motherPhone = candidate.motherPhone ?? mother?.phone ?? ''
   const otherName = other?.name ?? ''
   const otherPhone = other?.phone ?? ''
+  const primaryGuardian = guardians.find((guardian) => guardian.isPrimary) || guardians[0]
+  const relationshipLabels = { father: 'Cha', mother: 'Mẹ', other: 'Người liên hệ' }
   const hasGuardianDetails = guardians.length > 0 || [
     'fatherName',
     'fatherPhone',
@@ -103,10 +108,10 @@ const normalizeCandidate = (candidate = {}) => {
     motherName,
     motherPhone,
     parentInfo: hasGuardianDetails
-      ? candidate.parentInfo ?? otherName
+      ? candidate.parentInfo ?? (primaryGuardian ? `${relationshipLabels[primaryGuardian.relationship] || 'Phụ huynh'}: ${primaryGuardian.name}` : '')
       : candidate.parentInfo || compactJoin([fatherName ? `Cha: ${fatherName}` : '', motherName ? `Mẹ: ${motherName}` : '', otherName]),
     parentPhone: hasGuardianDetails
-      ? candidate.parentPhone ?? otherPhone
+      ? candidate.parentPhone ?? primaryGuardian?.phone ?? otherPhone
       : candidate.parentPhone || compactJoin([fatherPhone, motherPhone, otherPhone]),
     learningGoals: normalizeList(candidate.learningGoals),
     englishExperience: normalizeList(candidate.englishExperience),
@@ -154,39 +159,34 @@ const toSavedCandidate = (candidateForm) => ({
   callCount: Math.max(0, Number(candidateForm.callCount) || 0),
 })
 
-const getDownloadName = (contentDisposition, format) => {
-  const match = contentDisposition?.match(/filename\*?=(?:UTF-8''|")?([^";]+)/i)
-  return match ? decodeURIComponent(match[1].replace(/"$/, '')) : `ung-vien-tiem-nang.${format}`
-}
-
 const overviewStages = [
   {
     id: 'lead',
     label: 'Lead',
     description: 'Ứng viên đang chăm sóc',
     iconClassName: 'bg-orange-50 text-orange-600',
-    statuses: ['lead', 'mới', 'đang tư vấn', 'đã hẹn test', 'cần gọi lại'],
+    statuses: ['lead', 'potential', 'trial', 'mới', 'đang tư vấn', 'đã hẹn test', 'cần gọi lại'],
   },
   {
     id: 'studying',
     label: 'Đang học',
     description: 'Học viên đã vào lớp',
     iconClassName: 'bg-emerald-50 text-emerald-600',
-    statuses: ['đang học'],
+    statuses: ['active', 'đang học'],
   },
   {
     id: 'reserved',
     label: 'Bảo lưu',
     description: 'Học viên tạm bảo lưu',
     iconClassName: 'bg-amber-50 text-amber-600',
-    statuses: ['bảo lưu', 'bao lưu'],
+    statuses: ['reserved', 'bảo lưu', 'bao lưu'],
   },
   {
     id: 'stopped',
     label: 'Nghỉ học',
     description: 'Học viên đã nghỉ',
     iconClassName: 'bg-rose-50 text-rose-600',
-    statuses: ['nghỉ học', 'nghi học'],
+    statuses: ['stopped', 'nghỉ học', 'nghi học'],
   },
 ]
 
@@ -214,6 +214,11 @@ export const PotentialCandidatesPage = () => {
   const [statusFilter, setStatusFilter] = useState(candidateStatusOptions[0])
   const [appointmentDateFrom, setAppointmentDateFrom] = useState('')
   const [appointmentDateTo, setAppointmentDateTo] = useState('')
+  const [appointmentCandidateIds, setAppointmentCandidateIds] = useState(null)
+  const [genderFilter, setGenderFilter] = useState('')
+  const [schoolFilter, setSchoolFilter] = useState('')
+  const [sortBy, setSortBy] = useState('createdAt')
+  const [sortOrder, setSortOrder] = useState('desc')
   const [selectedOverviewStage, setSelectedOverviewStage] = useState(leadStageId)
   const [editingCandidateId, setEditingCandidateId] = useState(null)
   const [selectedCandidate, setSelectedCandidate] = useState(null)
@@ -223,25 +228,16 @@ export const PotentialCandidatesPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [reloadKey, setReloadKey] = useState(0)
   const [page, setPage] = useState(1)
-  const [meta, setMeta] = useState(null)
 
-  const listParams = useMemo(() => ({
-    q: keyword.trim() || undefined,
-    status: statusFilter === candidateStatusOptions[0] ? undefined : statusFilter,
-    page,
-    pageSize: 20,
-    sortBy: 'createdAt',
-    sortOrder: 'desc',
-  }), [keyword, page, statusFilter])
+  const listParams = useMemo(() => ({ sortBy, sortOrder }), [sortBy, sortOrder])
 
   useEffect(() => {
     const controller = new AbortController()
-    const timer = window.setTimeout(async () => {
+    const loadCandidates = async () => {
       setIsLoading(true)
       try {
-        const result = await getPotentialCandidates(listParams, controller.signal)
-        setCandidates(result.data.map(normalizeCandidate))
-        setMeta(result.meta)
+        const result = await getAllPotentialCandidates(listParams, controller.signal)
+        setCandidates(result.map(normalizeCandidate))
       } catch (error) {
         if (error.code !== 'ERR_CANCELED') {
           toast.error(getApiErrorMessage(error, 'Không thể tải danh sách ứng viên.'))
@@ -249,13 +245,54 @@ export const PotentialCandidatesPage = () => {
       } finally {
         if (!controller.signal.aborted) setIsLoading(false)
       }
-    }, 300)
+    }
+
+    loadCandidates()
 
     return () => {
-      window.clearTimeout(timer)
       controller.abort()
     }
   }, [listParams, reloadKey, setCandidates])
+
+  useEffect(() => {
+    if (!appointmentDateFrom && !appointmentDateTo) {
+      setAppointmentCandidateIds(null)
+      return undefined
+    }
+
+    const controller = new AbortController()
+    const loadAppointmentCandidates = async () => {
+      try {
+        const params = {
+          dateFrom: appointmentDateFrom || undefined,
+          dateTo: appointmentDateTo || undefined,
+          page: 1,
+          size: 100,
+          sortBy: 'scheduledAt',
+          sortOrder: 'asc',
+        }
+        const firstPage = await getAppointments(params, controller.signal)
+        const totalPages = Math.max(1, Math.ceil(firstPage.meta.total / firstPage.meta.size))
+        const remainingPages = totalPages > 1
+          ? await Promise.all(Array.from({ length: totalPages - 1 }, (_, index) =>
+            getAppointments({ ...params, page: index + 2 }, controller.signal)))
+          : []
+        const ids = [firstPage, ...remainingPages]
+          .flatMap((result) => result.data)
+          .map((appointment) => appointment.candidateId)
+          .filter(Boolean)
+        setAppointmentCandidateIds(new Set(ids))
+      } catch (error) {
+        if (error.code !== 'ERR_CANCELED') {
+          toast.error(getApiErrorMessage(error, 'Không thể lọc ứng viên theo ngày hẹn.'))
+          setAppointmentCandidateIds(new Set())
+        }
+      }
+    }
+
+    loadAppointmentCandidates()
+    return () => controller.abort()
+  }, [appointmentDateFrom, appointmentDateTo])
 
   const reloadCandidates = () => setReloadKey((current) => current + 1)
 
@@ -268,10 +305,54 @@ export const PotentialCandidatesPage = () => {
     return overviewStages.map((stage) => ({ ...stage, count: counts[stage.id] || 0 }))
   }, [candidates])
 
-  const visibleCandidates = useMemo(
-    () => candidates.filter((candidate) => getCandidateOverviewStage(candidate) === selectedOverviewStage),
-    [candidates, selectedOverviewStage],
+  const schoolOptions = useMemo(() => [...new Set(candidates.map((candidate) => candidate.school).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'vi')), [candidates])
+
+  const filteredCandidates = useMemo(() => {
+    const searchValue = normalizeSearchText(keyword)
+    return candidates.filter((candidate) => {
+      if (statusFilter !== candidateStatusOptions[0] && candidate.status !== statusFilter) return false
+      if (genderFilter && candidate.gender !== genderFilter) return false
+      if (schoolFilter && candidate.school !== schoolFilter) return false
+      if (appointmentCandidateIds && !appointmentCandidateIds.has(candidate.id)) return false
+      if (!searchValue) return true
+
+      const searchableValues = [
+        candidate.id,
+        candidate.code,
+        candidate.name,
+        candidate.gender,
+        candidate.school,
+        candidate.className,
+        candidate.phone,
+        candidate.email,
+        candidate.address,
+        candidate.parentInfo,
+        candidate.parentPhone,
+        candidate.fatherName,
+        candidate.fatherPhone,
+        candidate.motherName,
+        candidate.motherPhone,
+        ...(candidate.certificates || []),
+        ...(candidate.desiredCourses || []),
+      ]
+      return searchableValues.some((value) => normalizeSearchText(value).includes(searchValue))
+    })
+  }, [appointmentCandidateIds, candidates, genderFilter, keyword, schoolFilter, statusFilter])
+
+  const stageCandidates = useMemo(
+    () => filteredCandidates.filter((candidate) => getCandidateOverviewStage(candidate) === selectedOverviewStage),
+    [filteredCandidates, selectedOverviewStage],
   )
+  const pageSize = 20
+  const totalPages = Math.max(1, Math.ceil(stageCandidates.length / pageSize))
+  const visibleCandidates = useMemo(
+    () => stageCandidates.slice((page - 1) * pageSize, page * pageSize),
+    [page, stageCandidates],
+  )
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages)
+  }, [page, totalPages])
 
   const selectedOverviewLabel = overviewStages.find((stage) => stage.id === selectedOverviewStage)?.label || 'Lead'
 
@@ -279,6 +360,18 @@ export const PotentialCandidatesPage = () => {
     setSelectedOverviewStage(stageId)
     setPage(1)
     if (stageId !== leadStageId) setStatusFilter(candidateStatusOptions[0])
+  }
+
+  const resetFilters = () => {
+    setKeyword('')
+    setStatusFilter(candidateStatusOptions[0])
+    setGenderFilter('')
+    setSchoolFilter('')
+    setAppointmentDateFrom('')
+    setAppointmentDateTo('')
+    setSortBy('createdAt')
+    setSortOrder('desc')
+    setPage(1)
   }
 
   const updateCandidateForm = (field, value) => {
@@ -303,8 +396,11 @@ export const PotentialCandidatesPage = () => {
       const candidate = normalizeCandidate({ ...savedCandidate, ...responseCandidate })
 
       if (candidateForm.appointmentDateTime) {
-        const appointment = await createPotentialCandidateAppointment(candidate.id, {
-          scheduledAt: new Date(candidateForm.appointmentDateTime).toISOString(),
+        const appointment = await createAppointment({
+          candidateId: candidate.id,
+          customer: candidate.name,
+          phone: candidate.parentPhone,
+          dateTime: candidateForm.appointmentDateTime,
           type: candidateForm.appointmentType,
           room: candidateForm.appointmentRoom.trim() || 'Online',
           status: candidateForm.appointmentStatus,
@@ -330,41 +426,29 @@ export const PotentialCandidatesPage = () => {
     }
   }
 
-  const handleImportFile = async (event) => {
-    const file = event.target.files?.[0]
-    event.target.value = ''
-    if (!file) return
-
-    try {
-      const result = await importPotentialCandidates(file)
-      reloadCandidates()
-      const message = `Đã import ${result.importedRows ?? 0}/${result.totalRows ?? 0} ứng viên.`
-      if (result.failedRows) toast.warning(`${message} Có ${result.failedRows} dòng lỗi.`)
-      else toast.success(message)
-    } catch (error) {
-      toast.error(getApiErrorMessage(error, 'Không thể import file ứng viên.'))
-    }
-  }
-
-  const handleExport = async () => {
-    try {
-      const format = 'csv'
-      const response = await exportPotentialCandidates({
-        q: keyword.trim() || undefined,
-        status: statusFilter === candidateStatusOptions[0] ? undefined : statusFilter,
-        format,
-      })
-      const url = URL.createObjectURL(response.data)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = getDownloadName(response.headers['content-disposition'], format)
-      document.body.appendChild(link)
-      link.click()
-      link.remove()
-      URL.revokeObjectURL(url)
-    } catch (error) {
-      toast.error(getApiErrorMessage(error, 'Không thể export danh sách ứng viên.'))
-    }
+  const handleExport = () => {
+    const escapeCsv = (value) => `"${String(value ?? '').replaceAll('"', '""')}"`
+    const headers = ['Mã', 'Tên', 'Giới tính', 'Trường', 'Lớp', 'Phụ huynh', 'SĐT phụ huynh', 'Địa chỉ', 'Trạng thái']
+    const rows = stageCandidates.map((candidate) => [
+      candidate.id,
+      candidate.name,
+      candidate.gender,
+      candidate.school,
+      candidate.className,
+      candidate.parentInfo,
+      candidate.parentPhone,
+      candidate.address,
+      candidate.status,
+    ])
+    const csv = [headers, ...rows].map((row) => row.map(escapeCsv).join(',')).join('\n')
+    const url = URL.createObjectURL(new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' }))
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'ung-vien-tiem-nang.csv'
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
   }
 
   const handleCreateCandidate = () => {
@@ -373,14 +457,7 @@ export const PotentialCandidatesPage = () => {
     setShowForm(true)
   }
 
-  const loadCandidateDetail = async (candidate, action) => {
-    try {
-      const detail = normalizeCandidate(await getPotentialCandidate(candidate.id))
-      action(detail)
-    } catch (error) {
-      toast.error(getApiErrorMessage(error, 'Không thể tải chi tiết ứng viên.'))
-    }
-  }
+  const loadCandidateDetail = (candidate, action) => action(normalizeCandidate(candidate))
 
   const handleEditCandidate = (candidate) => loadCandidateDetail(candidate, (detail) => {
     setCandidateForm(toCandidateForm(detail))
@@ -407,7 +484,6 @@ export const PotentialCandidatesPage = () => {
     <div className="space-y-5">
       <PotentialCandidatesHeader
         onExport={handleExport}
-        onImportFile={handleImportFile}
         onToggleForm={handleCreateCandidate}
       />
 
@@ -427,8 +503,13 @@ export const PotentialCandidatesPage = () => {
       <PotentialCandidatesSearch
         appointmentDateFrom={appointmentDateFrom}
         appointmentDateTo={appointmentDateTo}
+        genderFilter={genderFilter}
         keyword={keyword}
+        schoolFilter={schoolFilter}
+        schoolOptions={schoolOptions}
         showStatusFilter={selectedOverviewStage === leadStageId}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
         statusFilter={statusFilter}
         onAppointmentDateFromChange={(value) => {
           setAppointmentDateFrom(value)
@@ -438,8 +519,25 @@ export const PotentialCandidatesPage = () => {
           setAppointmentDateTo(value)
           setPage(1)
         }}
+        onGenderFilterChange={(value) => {
+          setGenderFilter(value)
+          setPage(1)
+        }}
         onKeywordChange={(value) => {
           setKeyword(value)
+          setPage(1)
+        }}
+        onReset={resetFilters}
+        onSchoolFilterChange={(value) => {
+          setSchoolFilter(value)
+          setPage(1)
+        }}
+        onSortByChange={(value) => {
+          setSortBy(value)
+          setPage(1)
+        }}
+        onSortOrderChange={(value) => {
+          setSortOrder(value)
           setPage(1)
         }}
         onStatusFilterChange={(value) => {
@@ -477,7 +575,7 @@ export const PotentialCandidatesPage = () => {
           onDelete={handleDeleteCandidate}
           onEdit={handleEditCandidate}
           onView={(candidate) => loadCandidateDetail(candidate, setSelectedCandidate)}
-          rowNumberOffset={(page - 1) * (meta?.pageSize || 20)}
+          rowNumberOffset={(page - 1) * pageSize}
         />
       ) : (
         <div className="rounded-2xl border border-orange-100 bg-white px-5 py-12 text-center text-sm font-semibold text-slate-500">
@@ -485,9 +583,9 @@ export const PotentialCandidatesPage = () => {
         </div>
       )}
 
-      {!isLoading && meta?.totalPages > 1 && (
+      {!isLoading && totalPages > 1 && (
         <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-600">
-          <span>Trang {meta.page}/{meta.totalPages} · {meta.totalItems} ứng viên</span>
+          <span>Trang {page}/{totalPages} · {stageCandidates.length} ứng viên</span>
           <div className="flex gap-2">
             <button
               className="rounded-lg border border-orange-200 bg-white px-4 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-50"
@@ -499,9 +597,9 @@ export const PotentialCandidatesPage = () => {
             </button>
             <button
               className="rounded-lg border border-orange-200 bg-white px-4 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={page >= meta.totalPages}
+              disabled={page >= totalPages}
               type="button"
-              onClick={() => setPage((current) => Math.min(meta.totalPages, current + 1))}
+              onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
             >
               Trang sau
             </button>

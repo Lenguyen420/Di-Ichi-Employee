@@ -1,6 +1,6 @@
 import { Search } from 'lucide-react'
 import { Card } from '../Common/Card.jsx'
-import { candidateStatusOptions } from '../../datas/potentialCandidatesData.js'
+import { candidateStatusLabels, candidateStatusOptions } from '../../datas/potentialCandidatesData.js'
 
 export const PotentialCandidatesSearch = ({
   appointmentDateFrom,
@@ -32,7 +32,9 @@ export const PotentialCandidatesSearch = ({
             value={statusFilter}
             onChange={(event) => onStatusFilterChange(event.target.value)}
           >
-            {candidateStatusOptions.map((status) => <option key={status}>{status}</option>)}
+            {candidateStatusOptions.map((status) => (
+              <option key={status} value={status}>{candidateStatusLabels[status] || status}</option>
+            ))}
           </select>
         </FilterField>
       )}
