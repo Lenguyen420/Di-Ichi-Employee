@@ -3,7 +3,8 @@ import { initReactI18next } from 'react-i18next'
 
 const savedLanguage = window.localStorage.getItem('di-ichi-language')
 const defaultLanguage = savedLanguage || 'vi'
-
+//language resources
+//'TIENG_VIET':{eng:'Vietnamese', vie:'Tiếng Việt',},
 const en = {
   'Tiếng Việt': 'Vietnamese',
   'English': 'English',
