@@ -1,4 +1,5 @@
 import { ChevronRight } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Badge } from '../Common/Badge.jsx'
 import { Card } from '../Common/Card.jsx'
 
@@ -17,21 +18,22 @@ export const EnrollmentSummary = ({
   selectedPotentialCandidate,
   tuitionAfterDiscount,
 }) => {
+  const { t } = useTranslation()
   const classSeats = selectedClass ? getClassSeats(selectedClass.students) : null
 
   return (
     <Card className="rounded-lg">
-      <h2 className="text-lg font-black text-slate-950">Tóm tắt đề xuất</h2>
+      <h2 className="text-lg font-black text-slate-950">{t('Tóm tắt đề xuất')}</h2>
       <div className="mt-4 space-y-3">
-        <Summary label="Khách hàng" value={customerName || 'Chưa chọn'} badge={selectedCustomer?.level || selectedPotentialCandidate?.status || 'Mới'} />
-        <Summary label="Thông tin đề xuất" value={recommendationLabel} badge={selectedPotentialCandidate ? 'Ứng viên tiềm năng' : selectedCourse ? 'Khách hàng' : 'Chờ chọn'} />
-        <Summary label="Khóa học phù hợp" value={selectedCourse?.name || 'Chưa chọn khóa'} badge={selectedCourse ? 'Gợi ý tốt nhất' : 'Chờ chọn'} />
+        <Summary label={t('Khách hàng')} value={customerName || t('Chưa chọn')} badge={selectedCustomer?.level || t(selectedPotentialCandidate?.status || 'Mới')} />
+        <Summary label={t('Thông tin đề xuất')} value={recommendationLabel} badge={selectedPotentialCandidate ? t('Ứng viên tiềm năng') : selectedCourse ? t('Khách hàng') : t('Chờ chọn')} />
+        <Summary label={t('Khóa học phù hợp')} value={selectedCourse?.name || t('Chưa chọn khóa')} badge={selectedCourse ? t('Gợi ý tốt nhất') : t('Chờ chọn')} />
         <Summary
-          label="Lớp khả dụng"
-          value={selectedClass ? `${selectedClass.name} · ${selectedClass.schedule}` : 'Chưa có lớp'}
-          badge={classSeats ? `Còn ${classSeats.remaining} chỗ` : 'Chưa chọn'}
+          label={t('Lớp khả dụng')}
+          value={selectedClass ? `${selectedClass.name} · ${selectedClass.schedule}` : t('Chưa có lớp')}
+          badge={classSeats ? t('Còn {{count}} chỗ', { count: classSeats.remaining }) : t('Chưa chọn')}
         />
-        <Summary label="Học phí sau ưu đãi" value={tuitionAfterDiscount} badge={discountPercent ? `-${discountPercent}%` : 'Giá gốc'} />
+        <Summary label={t('Học phí sau ưu đãi')} value={tuitionAfterDiscount} badge={discountPercent ? `-${discountPercent}%` : t('Giá gốc')} />
       </div>
     </Card>
   )

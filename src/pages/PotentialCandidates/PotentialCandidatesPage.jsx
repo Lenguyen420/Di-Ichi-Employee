@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { PotentialCandidateDetailModal } from '../../components/PotentialCandidates/PotentialCandidateDetailModal.jsx'
 import { PotentialCandidateForm } from '../../components/PotentialCandidates/PotentialCandidateForm.jsx'
@@ -43,35 +44,35 @@ const guardianFields = [
   ['parentInfo', 'parentPhone', 'người liên hệ khác'],
 ]
 
-const validateCandidate = (form) => {
-  if (!form.name.trim()) return 'Vui lòng nhập tên ứng viên.'
-  if (form.name.trim().length > 150) return 'Tên ứng viên không được vượt quá 150 ký tự.'
+const validateCandidate = (form, t) => {
+  if (!form.name.trim()) return t('Vui lòng nhập tên ứng viên.')
+  if (form.name.trim().length > 150) return t('Tên ứng viên không được vượt quá 150 ký tự.')
 
   const incompleteGuardian = guardianFields.find(([nameField, phoneField]) =>
     Boolean(form[nameField]?.trim()) !== Boolean(form[phoneField]?.trim()),
   )
-  if (incompleteGuardian) return `Vui lòng nhập đủ họ tên và SĐT của ${incompleteGuardian[2]}.`
+  if (incompleteGuardian) return t('Vui lòng nhập đủ họ tên và SĐT của {{guardian}}.', { guardian: incompleteGuardian[2] })
 
   const hasGuardian = guardianFields.some(([nameField, phoneField]) => form[nameField]?.trim() && form[phoneField]?.trim())
-  if (!hasGuardian) return 'Vui lòng nhập ít nhất một người giám hộ có đủ họ tên và SĐT.'
+  if (!hasGuardian) return t('Vui lòng nhập ít nhất một người giám hộ có đủ họ tên và SĐT.')
 
   if (form.birthYear) {
     const birthYear = Number(form.birthYear)
     const currentYear = new Date().getFullYear()
     if (!Number.isInteger(birthYear) || birthYear < 1900 || birthYear > currentYear) {
-      return `Năm sinh phải từ 1900 đến ${currentYear}.`
+      return t('Năm sinh phải từ 1900 đến {{year}}.', { year: currentYear })
     }
   }
 
   return ''
 }
 
-const getApiErrorMessage = (error, fallback) => {
+const getApiErrorMessage = (error, fallback, t) => {
   const backendMessage = error.response?.data?.error?.message || error.response?.data?.message
   if (backendMessage) return Array.isArray(backendMessage) ? backendMessage.join(' ') : backendMessage
-  if (error.response?.status === 401) return 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.'
-  if (error.response?.status === 403) return 'Bạn không có quyền thực hiện thao tác này.'
-  if (!error.response) return 'Không thể kết nối máy chủ. Vui lòng thử lại.'
+  if (error.response?.status === 401) return t('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.')
+  if (error.response?.status === 403) return t('Bạn không có quyền thực hiện thao tác này.')
+  if (!error.response) return t('Không thể kết nối máy chủ. Vui lòng thử lại.')
   return fallback
 }
 
@@ -208,6 +209,7 @@ const getCandidateOverviewStage = (candidate) => {
 }
 
 export const PotentialCandidatesPage = () => {
+  const { t } = useTranslation()
   const { addAppointment } = useAppointments()
   const { candidates, setCandidates } = usePotentialCandidates()
   const [keyword, setKeyword] = useState('')
@@ -244,7 +246,7 @@ export const PotentialCandidatesPage = () => {
         setMeta(result.meta)
       } catch (error) {
         if (error.code !== 'ERR_CANCELED') {
-          toast.error(getApiErrorMessage(error, 'Không thể tải danh sách ứng viên.'))
+          toast.error(getApiErrorMessage(error, t('Không thể tải danh sách ứng viên.'), t))
         }
       } finally {
         if (!controller.signal.aborted) setIsLoading(false)
@@ -255,7 +257,7 @@ export const PotentialCandidatesPage = () => {
       window.clearTimeout(timer)
       controller.abort()
     }
-  }, [listParams, reloadKey, setCandidates])
+  }, [listParams, reloadKey, setCandidates, t])
 
   const reloadCandidates = () => setReloadKey((current) => current + 1)
 
@@ -287,7 +289,7 @@ export const PotentialCandidatesPage = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    const validationMessage = validateCandidate(candidateForm)
+    const validationMessage = validateCandidate(candidateForm, t)
     if (validationMessage) {
       toast.error(validationMessage)
       return
@@ -315,16 +317,16 @@ export const PotentialCandidatesPage = () => {
           date: scheduledAt.toISOString().slice(0, 10),
           time: scheduledAt.toTimeString().slice(0, 5),
         })
-        toast.success('Đã tạo lịch hẹn cho ứng viên.')
+        toast.success(t('Đã tạo lịch hẹn cho ứng viên.'))
       }
 
       setCandidateForm(emptyCandidateForm)
       setEditingCandidateId(null)
       setShowForm(false)
       reloadCandidates()
-      toast.success(editingCandidateId ? 'Đã cập nhật ứng viên.' : 'Đã thêm ứng viên mới.')
+      toast.success(editingCandidateId ? t('Đã cập nhật ứng viên.') : t('Đã thêm ứng viên mới.'))
     } catch (error) {
-      toast.error(getApiErrorMessage(error, editingCandidateId ? 'Không thể cập nhật ứng viên.' : 'Không thể tạo ứng viên.'))
+      toast.error(getApiErrorMessage(error, editingCandidateId ? t('Không thể cập nhật ứng viên.') : t('Không thể tạo ứng viên.'), t))
     } finally {
       setIsSubmitting(false)
     }
@@ -338,11 +340,11 @@ export const PotentialCandidatesPage = () => {
     try {
       const result = await importPotentialCandidates(file)
       reloadCandidates()
-      const message = `Đã import ${result.importedRows ?? 0}/${result.totalRows ?? 0} ứng viên.`
-      if (result.failedRows) toast.warning(`${message} Có ${result.failedRows} dòng lỗi.`)
+      const message = t('Đã import {{imported}}/{{total}} ứng viên.', { imported: result.importedRows ?? 0, total: result.totalRows ?? 0 })
+      if (result.failedRows) toast.warning(`${message} ${t('Có {{count}} dòng lỗi.', { count: result.failedRows })}`)
       else toast.success(message)
     } catch (error) {
-      toast.error(getApiErrorMessage(error, 'Không thể import file ứng viên.'))
+      toast.error(getApiErrorMessage(error, t('Không thể import file ứng viên.'), t))
     }
   }
 
@@ -363,7 +365,7 @@ export const PotentialCandidatesPage = () => {
       link.remove()
       URL.revokeObjectURL(url)
     } catch (error) {
-      toast.error(getApiErrorMessage(error, 'Không thể export danh sách ứng viên.'))
+      toast.error(getApiErrorMessage(error, t('Không thể export danh sách ứng viên.'), t))
     }
   }
 
@@ -378,7 +380,7 @@ export const PotentialCandidatesPage = () => {
       const detail = normalizeCandidate(await getPotentialCandidate(candidate.id))
       action(detail)
     } catch (error) {
-      toast.error(getApiErrorMessage(error, 'Không thể tải chi tiết ứng viên.'))
+      toast.error(getApiErrorMessage(error, t('Không thể tải chi tiết ứng viên.'), t))
     }
   }
 
@@ -389,17 +391,17 @@ export const PotentialCandidatesPage = () => {
   })
 
   const handleDeleteCandidate = async (candidate) => {
-    if (!window.confirm(`Xóa ứng viên ${candidate.name}?`)) return
+    if (!window.confirm(t('Xóa ứng viên {{name}}?', { name: candidate.name }))) return
 
     try {
       await deletePotentialCandidate(candidate.id)
       reloadCandidates()
-      toast.success('Đã xóa ứng viên.')
+      toast.success(t('Đã xóa ứng viên.'))
     } catch (error) {
       const fallback = error.response?.status === 409
-        ? 'Ứng viên đã phát sinh dữ liệu nên không thể xóa.'
-        : 'Không thể xóa ứng viên.'
-      toast.error(getApiErrorMessage(error, fallback))
+        ? t('Ứng viên đã phát sinh dữ liệu nên không thể xóa.')
+        : t('Không thể xóa ứng viên.')
+      toast.error(getApiErrorMessage(error, fallback, t))
     }
   }
 
@@ -419,8 +421,8 @@ export const PotentialCandidatesPage = () => {
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p className="text-sm font-black text-slate-800">Bộ lọc {selectedOverviewLabel}</p>
-          <p className="mt-1 text-xs font-semibold text-slate-500">Danh sách bên dưới đang hiển thị theo card tổng quan đã chọn.</p>
+          <p className="text-sm font-black text-slate-800">{t('Bộ lọc {{stage}}', { stage: t(selectedOverviewLabel) })}</p>
+          <p className="mt-1 text-xs font-semibold text-slate-500">{t('Danh sách bên dưới đang hiển thị theo card tổng quan đã chọn.')}</p>
         </div>
       </div>
 
@@ -469,7 +471,7 @@ export const PotentialCandidatesPage = () => {
 
       {isLoading ? (
         <div className="rounded-2xl border border-orange-100 bg-white px-5 py-12 text-center text-sm font-semibold text-slate-500">
-          Đang tải danh sách ứng viên...
+          {t('Đang tải danh sách ứng viên...')}
         </div>
       ) : visibleCandidates.length ? (
         <PotentialCandidatesTable
@@ -481,13 +483,13 @@ export const PotentialCandidatesPage = () => {
         />
       ) : (
         <div className="rounded-2xl border border-orange-100 bg-white px-5 py-12 text-center text-sm font-semibold text-slate-500">
-          Không tìm thấy ứng viên phù hợp trong nhóm {selectedOverviewLabel}.
+          {t('Không tìm thấy ứng viên phù hợp trong nhóm {{stage}}.', { stage: t(selectedOverviewLabel) })}
         </div>
       )}
 
       {!isLoading && meta?.totalPages > 1 && (
         <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-600">
-          <span>Trang {meta.page}/{meta.totalPages} · {meta.totalItems} ứng viên</span>
+          <span>{t('Trang {{page}}/{{totalPages}} · {{totalItems}} ứng viên', { page: meta.page, totalPages: meta.totalPages, totalItems: meta.totalItems })}</span>
           <div className="flex gap-2">
             <button
               className="rounded-lg border border-orange-200 bg-white px-4 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-50"
@@ -495,7 +497,7 @@ export const PotentialCandidatesPage = () => {
               type="button"
               onClick={() => setPage((current) => Math.max(1, current - 1))}
             >
-              Trang trước
+              {t('Trang trước')}
             </button>
             <button
               className="rounded-lg border border-orange-200 bg-white px-4 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-50"
@@ -503,7 +505,7 @@ export const PotentialCandidatesPage = () => {
               type="button"
               onClick={() => setPage((current) => Math.min(meta.totalPages, current + 1))}
             >
-              Trang sau
+              {t('Trang sau')}
             </button>
           </div>
         </div>

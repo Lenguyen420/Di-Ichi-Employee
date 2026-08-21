@@ -1,19 +1,22 @@
 import { NavLink, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { ChevronRight, LogOut } from 'lucide-react'
 import logo from '../../assets/logo/LOGO_Diichi.webp'
+import { LanguageSwitcher } from '../Common/LanguageSwitcher.jsx'
 import { cn } from '../../utils/cn.js'
 import { menuItems } from './menu.js'
 import { clearAuthSession } from '../../services/authSession.js'
 
 export const Sidebar = ({ open, onClose }) => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
 
   const handleLogout = () => {
     onClose()
     clearAuthSession()
-    toast.success('Đăng xuất thành công', {
-      description: 'Bạn đã quay về màn hình đăng nhập.',
+    toast.success(t('Đăng xuất thành công'), {
+      description: t('Bạn đã quay về màn hình đăng nhập.'),
     })
     navigate('/login')
   }
@@ -23,7 +26,7 @@ export const Sidebar = ({ open, onClose }) => {
       <button
         className={cn('fixed inset-0 z-40 bg-slate-950/45 backdrop-blur-sm transition lg:hidden', open ? 'opacity-100' : 'pointer-events-none opacity-0')}
         onClick={onClose}
-        aria-label="Đóng menu"
+        aria-label={t('Đóng menu')}
       />
       <aside
         className={cn(
@@ -75,7 +78,7 @@ export const Sidebar = ({ open, onClose }) => {
                     <span className={cn('grid h-9 w-9 place-items-center rounded-xl transition', isActive ? 'bg-white/20' : 'bg-slate-100 text-slate-500 group-hover:bg-white group-hover:text-orange-600')}>
                       <Icon size={18} />
                     </span>
-                    <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                    <span className="min-w-0 flex-1 truncate">{t(item.label)}</span>
                     {item.badge && (
                       <span className={cn('rounded-full px-2 py-0.5 text-xs font-black', isActive ? 'bg-white/20 text-white' : 'bg-orange-100 text-orange-700')}>
                         {item.badge}
@@ -90,6 +93,7 @@ export const Sidebar = ({ open, onClose }) => {
         </nav>
 
         <div className="border-t border-orange-100 p-3">
+          <LanguageSwitcher className="mb-3 flex w-full sm:hidden" />
           {/* <div className="rounded-2xl bg-slate-50 p-3">
             <div className="flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-xl bg-orange-100 text-orange-700">
@@ -110,7 +114,7 @@ export const Sidebar = ({ open, onClose }) => {
               <span className="grid h-9 w-9 place-items-center rounded-xl bg-white/20">
                 <LogOut size={18} />
               </span>
-              Đăng xuất
+              {t('Đăng xuất')}
             </span>
             <span className="h-2 w-2 rounded-full bg-white/80" />
           </button>

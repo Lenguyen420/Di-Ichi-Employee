@@ -1,7 +1,9 @@
+import { useTranslation } from 'react-i18next'
 import { Badge } from '../Common/Badge.jsx'
 import { DataTable } from '../Common/DataTable.jsx'
 
 export const ClassesTable = ({ classes, onView }) => {
+  const { t } = useTranslation()
   const columns = [
     { header: 'Lớp học', accessorKey: 'name' },
     { header: 'Khóa học', accessorKey: 'course' },
@@ -13,7 +15,7 @@ export const ClassesTable = ({ classes, onView }) => {
       header: 'Thao tác',
       cell: ({ row }) => (
         <button className="rounded-lg px-3 py-2 text-sm font-black text-orange-600 transition hover:bg-orange-50 hover:text-orange-700" type="button" onClick={() => onView(row.original)}>
-          Xem chi tiết
+          {t('Xem chi tiết')}
         </button>
       ),
     },
