@@ -1,6 +1,8 @@
 import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table'
+import { useTranslation } from 'react-i18next'
 
 export const DataTable = ({ columns, data }) => {
+  const { t } = useTranslation()
   const table = useReactTable({ data, columns, getCoreRowModel: getCoreRowModel() })
 
   return (
@@ -12,7 +14,9 @@ export const DataTable = ({ columns, data }) => {
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <th key={header.id} className="px-4 py-3 font-black">
-                    {flexRender(header.column.columnDef.header, header.getContext())}
+                    {typeof header.column.columnDef.header === 'string'
+                      ? t(header.column.columnDef.header)
+                      : flexRender(header.column.columnDef.header, header.getContext())}
                   </th>
                 ))}
               </tr>

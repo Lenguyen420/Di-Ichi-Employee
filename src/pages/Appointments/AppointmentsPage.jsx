@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CalendarPlus } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { AppointmentDetailModal } from '../../components/Appointments/AppointmentDetailModal.jsx'
 import { AppointmentFilters } from '../../components/Appointments/AppointmentFilters.jsx'
@@ -42,16 +43,17 @@ const normalizeAppointment = (appointment = {}) => {
   return { ...appointment, date, time }
 }
 
-const getApiErrorMessage = (error, fallback) => {
+const getApiErrorMessage = (error, fallback, t) => {
   const backendMessage = error.response?.data?.error?.message || error.response?.data?.message
   if (backendMessage) return Array.isArray(backendMessage) ? backendMessage.join(' ') : backendMessage
-  if (error.response?.status === 401) return 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.'
-  if (error.response?.status === 403) return 'Bạn không có quyền thao tác lịch hẹn của chi nhánh này.'
-  if (!error.response) return 'Không thể kết nối máy chủ. Vui lòng thử lại.'
+  if (error.response?.status === 401) return t('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.')
+  if (error.response?.status === 403) return t('Bạn không có quyền thao tác lịch hẹn của chi nhánh này.')
+  if (!error.response) return t('Không thể kết nối máy chủ. Vui lòng thử lại.')
   return fallback
 }
 
 export const AppointmentsPage = () => {
+  const { t } = useTranslation()
   const {
     appointments,
     setAppointments,
@@ -95,7 +97,7 @@ export const AppointmentsPage = () => {
         setMeta(result.meta)
       } catch (error) {
         if (error.code !== 'ERR_CANCELED') {
-          toast.error(getApiErrorMessage(error, 'Không thể tải danh sách lịch hẹn.'))
+          toast.error(getApiErrorMessage(error, t('Không thể tải danh sách lịch hẹn.'), t))
         }
       } finally {
         if (!controller.signal.aborted) setIsLoading(false)
@@ -106,7 +108,7 @@ export const AppointmentsPage = () => {
       window.clearTimeout(timer)
       controller.abort()
     }
-  }, [listParams, reloadKey, setAppointments])
+  }, [listParams, reloadKey, setAppointments, t])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -114,11 +116,11 @@ export const AppointmentsPage = () => {
       .then(setCandidates)
       .catch((error) => {
         if (error.code !== 'ERR_CANCELED') {
-          toast.error(getApiErrorMessage(error, 'Không thể tải danh sách ứng viên.'))
+          toast.error(getApiErrorMessage(error, t('Không thể tải danh sách ứng viên.'), t))
         }
       })
     return () => controller.abort()
-  }, [])
+  }, [t])
 
   const selectedCandidate = useMemo(
     () => candidates.find((candidate) => candidate.id === form.candidateId) || null,
@@ -168,7 +170,7 @@ export const AppointmentsPage = () => {
       setEditingAppointmentId(detail.id)
       setShowForm(true)
     } catch (error) {
-      toast.error(getApiErrorMessage(error, 'Không thể tải chi tiết lịch hẹn.'))
+      toast.error(getApiErrorMessage(error, t('Không thể tải chi tiết lịch hẹn.'), t))
     }
   }
 
@@ -182,11 +184,11 @@ export const AppointmentsPage = () => {
     event.preventDefault()
 
     if (!form.customer.trim() || !form.dateTime) {
-      toast.error('Vui lòng nhập tên ứng viên và ngày giờ hẹn.')
+      toast.error(t('Vui lòng nhập tên ứng viên và ngày giờ hẹn.'))
       return
     }
     if (!form.candidateId && !form.phone.trim()) {
-      toast.error('Vui lòng nhập SĐT khi tạo lịch cho khách tự do.')
+      toast.error(t('Vui lòng nhập SĐT khi tạo lịch cho khách tự do.'))
       return
     }
 
@@ -195,16 +197,16 @@ export const AppointmentsPage = () => {
       if (editingAppointmentId) {
         const saved = normalizeAppointment(await updateAppointmentApi(editingAppointmentId, form))
         updateAppointment(editingAppointmentId, saved)
-        toast.success('Đã cập nhật lịch hẹn.')
+        toast.success(t('Đã cập nhật lịch hẹn.'))
       } else {
         const saved = normalizeAppointment(await createAppointment(form))
         addAppointment(saved)
-        toast.success('Đã tạo lịch hẹn.')
+        toast.success(t('Đã tạo lịch hẹn.'))
       }
       closeForm()
       setReloadKey((current) => current + 1)
     } catch (error) {
-      toast.error(getApiErrorMessage(error, editingAppointmentId ? 'Không thể cập nhật lịch hẹn.' : 'Không thể tạo lịch hẹn.'))
+      toast.error(getApiErrorMessage(error, editingAppointmentId ? t('Không thể cập nhật lịch hẹn.') : t('Không thể tạo lịch hẹn.'), t))
     } finally {
       setIsSubmitting(false)
     }
@@ -214,23 +216,23 @@ export const AppointmentsPage = () => {
     try {
       setSelectedAppointment(normalizeAppointment(await getAppointment(appointment.id)))
     } catch (error) {
-      toast.error(getApiErrorMessage(error, 'Không thể tải chi tiết lịch hẹn.'))
+      toast.error(getApiErrorMessage(error, t('Không thể tải chi tiết lịch hẹn.'), t))
     }
   }
 
   const handleDelete = async (appointment) => {
-    if (!window.confirm(`Xóa lịch hẹn của ${appointment.customer}?`)) return
+    if (!window.confirm(t('Xóa lịch hẹn của {{customer}}?', { customer: appointment.customer }))) return
 
     try {
       await deleteAppointmentApi(appointment.id)
       deleteAppointment(appointment.id)
       setReloadKey((current) => current + 1)
-      toast.success('Đã xóa lịch hẹn.')
+      toast.success(t('Đã xóa lịch hẹn.'))
     } catch (error) {
       const fallback = error.response?.status === 409
-        ? 'Không thể xóa lịch hẹn đã hoàn thành.'
-        : 'Không thể xóa lịch hẹn.'
-      toast.error(getApiErrorMessage(error, fallback))
+        ? t('Không thể xóa lịch hẹn đã hoàn thành.')
+        : t('Không thể xóa lịch hẹn.')
+      toast.error(getApiErrorMessage(error, fallback, t))
     }
   }
 
@@ -240,11 +242,11 @@ export const AppointmentsPage = () => {
     <div className="space-y-5">
       <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
         <div>
-          <p className="text-sm font-bold text-orange-600">Lịch hẹn</p>
-          <h1 className="mt-1 text-2xl font-black text-slate-950 md:text-3xl">Danh sách lịch hẹn</h1>
-          <p className="mt-2 text-sm text-slate-500">Theo dõi lịch test đầu vào, tư vấn, đóng học phí và ký hợp đồng.</p>
+          <p className="text-sm font-bold text-orange-600">{t('Lịch hẹn')}</p>
+          <h1 className="mt-1 text-2xl font-black text-slate-950 md:text-3xl">{t('Danh sách lịch hẹn')}</h1>
+          <p className="mt-2 text-sm text-slate-500">{t('Theo dõi lịch test đầu vào, tư vấn, đóng học phí và ký hợp đồng.')}</p>
         </div>
-        <Button type="button" onClick={openCreateForm}><CalendarPlus size={18} /> Tạo lịch hẹn</Button>
+        <Button type="button" onClick={openCreateForm}><CalendarPlus size={18} /> {t('Tạo lịch hẹn')}</Button>
       </div>
 
       {showForm && (
@@ -277,19 +279,19 @@ export const AppointmentsPage = () => {
       />
 
       {isLoading ? (
-        <div className="rounded-2xl border border-orange-100 bg-white px-5 py-12 text-center text-sm font-semibold text-slate-500">Đang tải danh sách lịch hẹn...</div>
+        <div className="rounded-2xl border border-orange-100 bg-white px-5 py-12 text-center text-sm font-semibold text-slate-500">{t('Đang tải danh sách lịch hẹn...')}</div>
       ) : appointments.length ? (
         <AppointmentsTable appointments={appointments} onDelete={handleDelete} onEdit={openEditForm} onView={handleView} />
       ) : (
-        <div className="rounded-2xl border border-orange-100 bg-white px-5 py-12 text-center text-sm font-semibold text-slate-500">Không tìm thấy lịch hẹn phù hợp.</div>
+        <div className="rounded-2xl border border-orange-100 bg-white px-5 py-12 text-center text-sm font-semibold text-slate-500">{t('Không tìm thấy lịch hẹn phù hợp.')}</div>
       )}
 
       {!isLoading && totalPages > 1 && (
         <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-600">
-          <span>Trang {meta.page}/{totalPages} · {meta.total} lịch hẹn</span>
+          <span>{t('Trang {{page}}/{{totalPages}} · {{total}} lịch hẹn', { page: meta.page, totalPages, total: meta.total })}</span>
           <div className="flex gap-2">
-            <button className="rounded-lg border border-orange-200 bg-white px-4 py-2 font-semibold disabled:opacity-50" disabled={page <= 1} type="button" onClick={() => setPage((current) => current - 1)}>Trang trước</button>
-            <button className="rounded-lg border border-orange-200 bg-white px-4 py-2 font-semibold disabled:opacity-50" disabled={page >= totalPages} type="button" onClick={() => setPage((current) => current + 1)}>Trang sau</button>
+            <button className="rounded-lg border border-orange-200 bg-white px-4 py-2 font-semibold disabled:opacity-50" disabled={page <= 1} type="button" onClick={() => setPage((current) => current - 1)}>{t('Trang trước')}</button>
+            <button className="rounded-lg border border-orange-200 bg-white px-4 py-2 font-semibold disabled:opacity-50" disabled={page >= totalPages} type="button" onClick={() => setPage((current) => current + 1)}>{t('Trang sau')}</button>
           </div>
         </div>
       )}

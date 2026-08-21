@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { DashboardDetailModal } from '../../components/Dashboard/DashboardDetailModal.jsx'
 import { DashboardKpiCards } from '../../components/Dashboard/DashboardKpiCards.jsx'
@@ -34,6 +35,7 @@ const getApiErrorMessage = (error) => {
 }
 
 export const DashboardPage = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [selectedDetail, setSelectedDetail] = useState(null)
   const [overview, setOverview] = useState(null)
@@ -95,7 +97,7 @@ export const DashboardPage = () => {
     ]
   }, [overview])
 
-  const appointments = useMemo(() => (overview?.todayAppointments || []).map((appointment) => ({
+  const todayAppointments = useMemo(() => (overview?.todayAppointments || []).map((appointment) => ({
     ...appointment,
     time: getBangkokTime(appointment.scheduledAt),
   })), [overview])
@@ -117,9 +119,9 @@ export const DashboardPage = () => {
   return (
     <div className="space-y-5">
       <div>
-        <p className="text-sm font-bold text-orange-600">Dashboard</p>
-        <h1 className="mt-1 text-2xl font-black text-slate-950 md:text-3xl">Tổng quan vận hành hôm nay</h1>
-        <p className="mt-2 text-sm text-slate-500">Theo dõi KPI, ứng viên đã gọi, ứng viên mới, công việc và lịch hẹn trong ngày.</p>
+        <p className="text-sm font-bold text-orange-600">{t('Dashboard')}</p>
+        <h1 className="mt-1 text-2xl font-black text-slate-950 md:text-3xl">{t('Tổng quan vận hành hôm nay')}</h1>
+        <p className="mt-2 text-sm text-slate-500">{t('Theo dõi KPI, ứng viên đã gọi, ứng viên mới, công việc và lịch hẹn trong ngày.')}</p>
       </div>
 
       {isLoading ? (
@@ -139,7 +141,7 @@ export const DashboardPage = () => {
 
           <DashboardTasks tasks={overview?.todayTasks || []} />
 
-          <DashboardListCards appointments={appointments} customers={overview?.newCandidates || []} onOpenAppointments={() => navigate('/lich-hen')} onOpenCandidates={() => navigate('/ung-vien-tiem-nang')} />
+          <DashboardListCards appointments={todayAppointments} customers={overview?.newCandidates || []} onOpenAppointments={() => navigate('/lich-hen')} onOpenCandidates={() => navigate('/ung-vien-tiem-nang')} />
         </>
       )}
       <DashboardDetailModal item={selectedDetail} onClose={() => setSelectedDetail(null)} />

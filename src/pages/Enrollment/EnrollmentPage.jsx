@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { EnrollmentForm } from '../../components/Enrollment/EnrollmentForm.jsx'
 import { EnrollmentSteps } from '../../components/Enrollment/EnrollmentSteps.jsx'
@@ -28,6 +29,7 @@ const findRecommendedCourseCode = (candidate, customer) => {
 }
 
 export const EnrollmentPage = () => {
+  const { t } = useTranslation()
   const [selectedCustomerName, setSelectedCustomerName] = useState(customers[0]?.name || '')
   const [manualCustomerName, setManualCustomerName] = useState('')
   const customerName = manualCustomerName.trim() || selectedCustomerName
@@ -52,8 +54,8 @@ export const EnrollmentPage = () => {
       const customer = customers.find((item) => normalizeText(item.name) === normalizeText(name))
       const candidate = potentialCandidates.find((item) => normalizeText(item.name) === normalizeText(name))
       const details = [
-        customer ? `Khách hàng · ${customer.phone} · Level ${customer.level}` : null,
-        candidate ? `Ứng viên tiềm năng · ${candidate.parentPhone} · ${candidate.status}` : null,
+        customer ? `${t('Khách hàng')} · ${customer.phone} · Level ${customer.level}` : null,
+        candidate ? `${t('Ứng viên tiềm năng')} · ${candidate.parentPhone} · ${t(candidate.status)}` : null,
       ].filter(Boolean)
 
       return {
@@ -62,7 +64,7 @@ export const EnrollmentPage = () => {
         name,
       }
     })
-  }, [])
+  }, [t])
   const initialCourseCode = recommendedStudent?.recommendedCourseCode || findRecommendedCourseCode(selectedPotentialCandidate, selectedCustomer) || courses[0]?.code || ''
   const [selectedCourseCode, setSelectedCourseCode] = useState(initialCourseCode)
   const availableClasses = useMemo(
@@ -72,7 +74,7 @@ export const EnrollmentPage = () => {
   const [selectedClassId, setSelectedClassId] = useState(classes.find((classItem) => classItem.courseCode === initialCourseCode)?.id || '')
   const selectedCourse = courses.find((course) => course.code === selectedCourseCode) || null
   const selectedClass = classes.find((classItem) => classItem.id === selectedClassId) || null
-  const recommendationLabel = selectedPotentialCandidate?.desiredCourses?.join(', ') || selectedCourse?.name || 'Chưa có đề xuất'
+  const recommendationLabel = selectedPotentialCandidate?.desiredCourses?.join(', ') || selectedCourse?.name || t('Chưa có đề xuất')
   const discountPercent = selectedCustomer || selectedPotentialCandidate ? 5 : 0
   const tuitionAfterDiscount = selectedCourse ? formatVnd(Math.round(parseVnd(selectedCourse.tuition) * (100 - discountPercent) / 100)) : '0đ'
 
@@ -109,29 +111,29 @@ export const EnrollmentPage = () => {
 
   const handleSubmit = () => {
     if (!customerName.trim()) {
-      toast.error('Vui lòng nhập hoặc chọn khách hàng.')
+      toast.error(t('Vui lòng nhập hoặc chọn khách hàng.'))
       return
     }
 
     if (!selectedCourse) {
-      toast.error('Vui lòng chọn khóa học.')
+      toast.error(t('Vui lòng chọn khóa học.'))
       return
     }
 
     if (!selectedClass) {
-      toast.error('Vui lòng chọn lớp còn khả dụng.')
+      toast.error(t('Vui lòng chọn lớp còn khả dụng.'))
       return
     }
 
-    toast.success(`Đã đăng ký ${customerName.trim()} vào lớp ${selectedClass.name}.`)
+    toast.success(t('Đã đăng ký {{customer}} vào lớp {{className}}.', { customer: customerName.trim(), className: selectedClass.name }))
   }
 
   return (
     <div className="space-y-5">
       <div>
-        <p className="text-sm font-bold text-orange-600">Đăng ký khóa học</p>
-        <h1 className="mt-1 text-2xl font-black text-slate-950 md:text-3xl">Quy trình đăng ký 5 bước</h1>
-        <p className="mt-2 text-sm text-slate-500">Từ chọn khách hàng, gợi ý khóa học, chọn lớp, tính học phí đến hoàn tất đăng ký.</p>
+        <p className="text-sm font-bold text-orange-600">{t('Đăng ký khóa học')}</p>
+        <h1 className="mt-1 text-2xl font-black text-slate-950 md:text-3xl">{t('Quy trình đăng ký 5 bước')}</h1>
+        <p className="mt-2 text-sm text-slate-500">{t('Từ chọn khách hàng, gợi ý khóa học, chọn lớp, tính học phí đến hoàn tất đăng ký.')}</p>
       </div>
 
       <EnrollmentSteps steps={enrollmentSteps} />

@@ -1,15 +1,18 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react'
 import logo from '../../assets/logo/LOGO_Diichi.webp'
 import { loginStaff } from '../../services/authApi.js'
 import { saveAuthSession } from '../../services/authSession.js'
 import { Button } from '../Common/Button.jsx'
+import { LanguageSwitcher } from '../Common/LanguageSwitcher.jsx'
 
 const normalizeEmail = (value) => value.trim().toLowerCase()
 
 export const LoginCard = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState('')
@@ -24,7 +27,7 @@ export const LoginCard = () => {
     const normalizedPassword = password.trim()
 
     if (!normalizedEmail || !normalizedPassword) {
-      toast.error('Vui lòng nhập đầy đủ thông tin đăng nhập.')
+      toast.error(t('Vui lòng nhập đầy đủ thông tin đăng nhập.'))
       return
     }
 
@@ -41,18 +44,18 @@ export const LoginCard = () => {
         branchId: session.branchId,
         fullName: session.fullName,
       }, rememberLogin)
-      toast.success('Đăng nhập thành công', {
-        description: 'Chào mừng bạn quay lại Di-Ichi Employee Portal.',
+      toast.success(t('Đăng nhập thành công'), {
+        description: t('Chào mừng bạn quay lại Di-Ichi Employee Portal.'),
       })
       navigate('/dashboard')
     } catch (error) {
       const backendMessage = error.response?.data?.error?.message || error.response?.data?.message
       const description = error.response?.status === 401
-        ? 'Email hoặc mật khẩu không đúng.'
+        ? t('Email hoặc mật khẩu không đúng.')
         : backendMessage || (error.message === 'INVALID_LOGIN_RESPONSE'
-          ? 'Phản hồi đăng nhập không có access token.'
-          : error.response ? 'Không thể đăng nhập. Vui lòng thử lại.' : 'Không thể kết nối máy chủ.')
-      toast.error('Đăng nhập thất bại', { description })
+          ? t('Phản hồi đăng nhập không có access token.')
+          : error.response ? t('Không thể đăng nhập. Vui lòng thử lại.') : t('Không thể kết nối máy chủ.'))
+      toast.error(t('Đăng nhập thất bại'), { description })
     } finally {
       setIsSubmitting(false)
     }
@@ -60,10 +63,14 @@ export const LoginCard = () => {
 
   return (
     <section className="mx-auto w-full max-w-md rounded-3xl border border-white/60 bg-white/90 p-6 shadow-2xl shadow-orange-950/20 backdrop-blur md:p-8">
+      <div className="mb-8 flex justify-end">
+        <LanguageSwitcher />
+      </div>
+
       <div className="text-center">
         <img className="mx-auto h-28 w-28 object-contain md:h-32 md:w-32" src={logo} alt="Di-Ichi" />
-        <h1 className="mt-5 text-2xl font-black text-slate-950">Đăng nhập nhân viên</h1>
-        <p className="mt-2 text-sm text-slate-500">Truy cập Di-Ichi Employee để quản lý công việc, lịch làm việc và thông tin nội bộ.</p>
+        <h1 className="mt-5 text-2xl font-black text-slate-950">{t('Đăng nhập nhân viên')}</h1>
+        <p className="mt-2 text-sm text-slate-500">{t('Truy cập Di-Ichi Employee để quản lý công việc, lịch làm việc và thông tin nội bộ.')}</p>
       </div>
 
       <form className="mt-7 space-y-4" onSubmit={handleSubmit}>
@@ -82,13 +89,13 @@ export const LoginCard = () => {
         </label>
 
         <label className="block">
-          <span className="text-sm font-bold text-slate-700">Mật khẩu</span>
+          <span className="text-sm font-bold text-slate-700">{t('Mật khẩu')}</span>
           <div className="mt-2 flex h-12 items-center gap-3 rounded-2xl border border-orange-100 bg-white px-4 focus-within:border-orange-300 focus-within:ring-4 focus-within:ring-orange-100">
             <LockKeyhole size={18} className="text-orange-500" />
             <input
               className="min-w-0 flex-1 bg-transparent text-sm outline-none"
               onChange={(event) => setPassword(event.target.value)}
-              placeholder="Nhập mật khẩu"
+              placeholder={t('Nhập mật khẩu')}
               type={showPassword ? 'text' : 'password'}
               value={password}
             />
@@ -96,7 +103,7 @@ export const LoginCard = () => {
               type="button"
               className="grid h-8 w-8 place-items-center rounded-lg text-slate-400 transition hover:bg-orange-50 hover:text-orange-600"
               onClick={() => setShowPassword((current) => !current)}
-              aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+              aria-label={showPassword ? t('Ẩn mật khẩu') : t('Hiện mật khẩu')}
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -111,13 +118,13 @@ export const LoginCard = () => {
               onChange={(event) => setRememberLogin(event.target.checked)}
               type="checkbox"
             />
-            Ghi nhớ đăng nhập
+            {t('Ghi nhớ đăng nhập')}
           </label>
-          <button className="font-bold text-orange-600" type="button">Quên mật khẩu?</button>
+          <button className="font-bold text-orange-600" type="button">{t('Quên mật khẩu?')}</button>
         </div>
 
         <Button className="w-full" disabled={isSubmitting} type="submit">
-          {isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
+          {isSubmitting ? t('Đang đăng nhập...') : t('Đăng nhập')}
         </Button>
       </form>
     </section>
