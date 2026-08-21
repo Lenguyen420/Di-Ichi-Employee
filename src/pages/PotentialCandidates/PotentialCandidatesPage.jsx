@@ -18,7 +18,10 @@ import { createAppointment } from '../../services/appointmentsApi.js'
 import {
   createPotentialCandidate,
   deletePotentialCandidate,
+  exportPotentialCandidates,
   getAllPotentialCandidates,
+  getPotentialCandidate,
+  importPotentialCandidates,
   updatePotentialCandidate,
 } from '../../services/potentialCandidatesApi.js'
 
@@ -34,6 +37,11 @@ const normalizeList = (value) => {
 }
 
 const compactJoin = (items, separator = ', ') => items.filter(Boolean).join(separator)
+
+const getDownloadName = (contentDisposition, format) => {
+  const match = contentDisposition?.match(/filename\*?=(?:UTF-8''|")?([^";]+)/i)
+  return match ? decodeURIComponent(match[1].replace(/"$/, '')) : `ung-vien-tiem-nang.${format}`
+}
 
 const normalizeSearchText = (value) => String(value ?? '')
   .normalize('NFD')
@@ -214,6 +222,8 @@ export const PotentialCandidatesPage = () => {
   const { candidates, setCandidates } = usePotentialCandidates()
   const [keyword, setKeyword] = useState('')
   const [statusFilter, setStatusFilter] = useState(candidateStatusOptions[0])
+  const [appointmentDateFrom, setAppointmentDateFrom] = useState('')
+  const [appointmentDateTo, setAppointmentDateTo] = useState('')
   const [selectedOverviewStage, setSelectedOverviewStage] = useState(leadStageId)
   const [editingCandidateId, setEditingCandidateId] = useState(null)
   const [selectedCandidate, setSelectedCandidate] = useState(null)
@@ -245,7 +255,7 @@ export const PotentialCandidatesPage = () => {
     return () => {
       controller.abort()
     }
-  }, [listParams, reloadKey, setCandidates, t])
+  }, [reloadKey, setCandidates, t])
 
   const reloadCandidates = () => setReloadKey((current) => current + 1)
 
@@ -262,6 +272,15 @@ export const PotentialCandidatesPage = () => {
     const searchValue = normalizeSearchText(keyword)
     return candidates.filter((candidate) => {
       if (statusFilter !== candidateStatusOptions[0] && candidate.status !== statusFilter) return false
+      const appointmentDate = String(
+        candidate.appointmentDate
+          || candidate.appointmentDateTime
+          || candidate.nextAppointmentDate
+          || candidate.scheduledAt
+          || '',
+      ).slice(0, 10)
+      if (appointmentDateFrom && (!appointmentDate || appointmentDate < appointmentDateFrom)) return false
+      if (appointmentDateTo && (!appointmentDate || appointmentDate > appointmentDateTo)) return false
       if (!searchValue) return true
 
       const searchableValues = [
@@ -285,7 +304,7 @@ export const PotentialCandidatesPage = () => {
       ]
       return searchableValues.some((value) => normalizeSearchText(value).includes(searchValue))
     })
-  }, [candidates, keyword, statusFilter])
+  }, [appointmentDateFrom, appointmentDateTo, candidates, keyword, statusFilter])
 
   const stageCandidates = useMemo(
     () => filteredCandidates.filter((candidate) => getCandidateOverviewStage(candidate) === selectedOverviewStage),
@@ -313,6 +332,8 @@ export const PotentialCandidatesPage = () => {
   const resetFilters = () => {
     setKeyword('')
     setStatusFilter(candidateStatusOptions[0])
+    setAppointmentDateFrom('')
+    setAppointmentDateTo('')
     setPage(1)
   }
 
@@ -445,6 +466,7 @@ export const PotentialCandidatesPage = () => {
     <div className="space-y-5">
       <PotentialCandidatesHeader
         onExport={handleExport}
+        onImportFile={handleImportFile}
         onToggleForm={handleCreateCandidate}
       />
 
@@ -462,9 +484,19 @@ export const PotentialCandidatesPage = () => {
       </div>
 
       <PotentialCandidatesSearch
+        appointmentDateFrom={appointmentDateFrom}
+        appointmentDateTo={appointmentDateTo}
         keyword={keyword}
         showStatusFilter={selectedOverviewStage === leadStageId}
         statusFilter={statusFilter}
+        onAppointmentDateFromChange={(value) => {
+          setAppointmentDateFrom(value)
+          setPage(1)
+        }}
+        onAppointmentDateToChange={(value) => {
+          setAppointmentDateTo(value)
+          setPage(1)
+        }}
         onKeywordChange={(value) => {
           setKeyword(value)
           setPage(1)
@@ -515,7 +547,7 @@ export const PotentialCandidatesPage = () => {
 
       {!isLoading && totalPages > 1 && (
         <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-600">
-          <span>{t('Trang {{page}}/{{totalPages}} · {{totalItems}} ứng viên', { page: meta.page, totalPages: meta.totalPages, totalItems: meta.totalItems })}</span>
+          <span>{t('Trang {{page}}/{{totalPages}} · {{totalItems}} ứng viên', { page, totalPages, totalItems: stageCandidates.length })}</span>
           <div className="flex gap-2">
             <button
               className="rounded-lg border border-orange-200 bg-white px-4 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-50"
