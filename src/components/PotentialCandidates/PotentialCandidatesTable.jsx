@@ -2,7 +2,7 @@ import { Eye, Pencil, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Badge } from '../Common/Badge.jsx'
 import { DataTable } from '../Common/DataTable.jsx'
-import { candidateStatusLabels, candidateStatusTone } from '../../datas/potentialCandidatesData.js'
+import { candidateStatusTone } from '../../datas/potentialCandidatesData.js'
 
 export const PotentialCandidatesTable = ({ candidates, onDelete, onEdit, onView, rowNumberOffset = 0 }) => {
   const { t } = useTranslation()

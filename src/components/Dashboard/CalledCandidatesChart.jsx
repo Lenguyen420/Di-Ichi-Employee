@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Badge } from '../Common/Badge.jsx'
 import { Card } from '../Common/Card.jsx'
 
-export const CalledCandidatesChart = ({ data }) => {
+export const CalledCandidatesChart = ({ data, todayIncrease = 0 }) => {
   const { t } = useTranslation()
 
   return (
@@ -13,7 +13,7 @@ export const CalledCandidatesChart = ({ data }) => {
           <h2 className="text-lg font-black text-slate-950">{t('Biểu đồ ứng viên đã gọi')}</h2>
           <p className="text-sm text-slate-500">{t('Số ứng viên đã được gọi theo tháng.')}</p>
         </div>
-        <Badge tone="green">+14</Badge>
+        <Badge tone="green">+{todayIncrease}</Badge>
       </div>
       <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">

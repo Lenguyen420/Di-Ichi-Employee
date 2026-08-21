@@ -1,4 +1,4 @@
-import { CalendarClock, CheckCircle2, ChevronRight, PhoneCall, UsersRound } from 'lucide-react'
+import { CalendarClock, CheckCircle2, ChevronRight, UsersRound } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Badge } from '../Common/Badge.jsx'
 import { Card } from '../Common/Card.jsx'
@@ -15,8 +15,8 @@ export const DashboardKpiCards = ({ kpis, onSelect }) => {
 
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      {kpis.map((item, index) => {
-        const Icon = icons[index]
+      {kpis.map((item) => {
+        const Icon = icons[item.id] || CheckCircle2
         return (
           <button key={item.id} className="text-left" type="button" onClick={() => onSelect(item)}>
             <Card className="h-full rounded-lg transition hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-md">
