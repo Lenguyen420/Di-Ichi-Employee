@@ -11,7 +11,9 @@ const withoutUndefined = (payload) =>
 const unwrapData = (response) => response.data?.data ?? response.data
 
 export const parsePotentialCandidatesResponse = (body = {}) => {
-  const container = body.data ?? body
+  const container = body.data && !Array.isArray(body.data) && typeof body.data === 'object'
+    ? body.data
+    : body
   const data = Array.isArray(container)
     ? container
     : [
@@ -68,40 +70,42 @@ export const buildCreatePotentialCandidatePayload = (form) => {
 export const buildUpdatePotentialCandidatePayload = (form) => {
   const birthYear = Number(form.birthYear)
 
-  return {
+  return withoutUndefined({
     name: String(form.name ?? '').trim(),
     gender: form.gender,
-    birthYear: Number.isInteger(birthYear) && birthYear > 0 ? birthYear : null,
-    school: String(form.school ?? '').trim(),
-    className: String(form.className ?? '').trim(),
-    certificates: Array.isArray(form.certificates) ? form.certificates : [],
-    fatherName: String(form.fatherName ?? '').trim(),
-    fatherPhone: String(form.fatherPhone ?? '').trim(),
-    motherName: String(form.motherName ?? '').trim(),
-    motherPhone: String(form.motherPhone ?? '').trim(),
-    parentInfo: String(form.parentInfo ?? '').trim(),
-    parentPhone: String(form.parentPhone ?? '').trim(),
-    address: String(form.address ?? '').trim(),
-    learningGoals: Array.isArray(form.learningGoals) ? form.learningGoals : [],
-    otherLearningGoal: String(form.otherLearningGoal ?? '').trim(),
-    englishExperience: Array.isArray(form.englishExperience) ? form.englishExperience : [],
-    previousEnglishCenter: String(form.previousEnglishCenter ?? '').trim(),
-    learningStyles: Array.isArray(form.learningStyles) ? form.learningStyles : [],
-    registrationCourse: String(form.registrationCourse ?? '').trim(),
-    registrationShift: String(form.registrationShift ?? '').trim(),
-    registrationDays: String(form.registrationDays ?? '').trim(),
-    registrationTuition: String(form.registrationTuition ?? '').trim(),
-    registrationNote: String(form.registrationNote ?? '').trim(),
-    desiredCourses: Array.isArray(form.desiredCourses) ? form.desiredCourses : [],
-    freeSchedule: String(form.freeSchedule ?? '').trim(),
-    callCount: Math.max(0, Number(form.callCount) || 0),
-    status: form.status,
-  }
+    birthYear: Number.isInteger(birthYear) && birthYear > 0 ? birthYear : undefined,
+    phone: optionalString(form.phone),
+    email: optionalString(form.email),
+    school: optionalString(form.school),
+    className: optionalString(form.className),
+    address: optionalString(form.address),
+    fatherName: optionalString(form.fatherName),
+    fatherPhone: optionalString(form.fatherPhone),
+    motherName: optionalString(form.motherName),
+    motherPhone: optionalString(form.motherPhone),
+    parentInfo: optionalString(form.parentInfo),
+    parentPhone: optionalString(form.parentPhone),
+    note: optionalString(form.registrationNote),
+  })
 }
 
 export const getPotentialCandidates = async (params, signal) => {
   const response = await api.get('/potential-candidates', { params, signal })
   return parsePotentialCandidatesResponse(response.data)
+}
+
+export const getAllPotentialCandidates = async (params = {}, signal) => {
+  const firstPage = await getPotentialCandidates({ ...params, page: 1, pageSize: 100 }, signal)
+  const totalPages = firstPage.meta?.totalPages || 1
+
+  if (totalPages <= 1) return firstPage.data
+
+  const remainingPages = await Promise.all(
+    Array.from({ length: totalPages - 1 }, (_, index) =>
+      getPotentialCandidates({ ...params, page: index + 2, pageSize: 100 }, signal)),
+  )
+
+  return [firstPage, ...remainingPages].flatMap((result) => result.data)
 }
 
 export const getPotentialCandidate = async (candidateId) => {

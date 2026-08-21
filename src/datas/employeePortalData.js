@@ -19,7 +19,6 @@ export const classStudents = [
 ]
 
 export const kpis = [
-  { id: 'called-candidates', label: 'Ứng viên đã gọi', value: '86', change: '+14 hôm nay', tone: 'green', detail: 'Tổng số ứng viên đã được nhân viên gọi trong tháng này.' },
   { id: 'new-candidates', label: 'Ứng viên mới', value: '126', change: '+24', tone: 'orange', detail: 'Ứng viên mới từ Facebook Ads, Website, Referral và Walk-in.' },
   { id: 'today-appointments', label: 'Lịch hẹn hôm nay', value: '18', change: '6 test đầu vào', tone: 'amber', detail: 'Bao gồm tư vấn, test đầu vào, đóng học phí và ký hợp đồng.' },
   { id: 'pending-tasks', label: 'Công việc còn lại', value: '32', change: '9 quá hạn', tone: 'rose', detail: 'Các công việc chăm sóc, xác nhận lịch và gửi báo giá chưa hoàn tất.' },

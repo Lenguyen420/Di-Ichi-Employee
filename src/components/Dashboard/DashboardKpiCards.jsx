@@ -4,7 +4,11 @@ import { Badge } from '../Common/Badge.jsx'
 import { Card } from '../Common/Card.jsx'
 import { translateStatic } from '../../i18n/translateStatic.js'
 
-const icons = [PhoneCall, UsersRound, CalendarClock, CheckCircle2]
+const icons = {
+  'new-candidates': UsersRound,
+  'today-appointments': CalendarClock,
+  'pending-tasks': CheckCircle2,
+}
 
 export const DashboardKpiCards = ({ kpis, onSelect }) => {
   const { t } = useTranslation()

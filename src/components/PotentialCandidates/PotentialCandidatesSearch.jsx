@@ -1,17 +1,14 @@
 import { Search } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Card } from '../Common/Card.jsx'
-import { candidateStatusOptions } from '../../datas/potentialCandidatesData.js'
+import { candidateStatusLabels, candidateStatusOptions } from '../../datas/potentialCandidatesData.js'
 
 export const PotentialCandidatesSearch = ({
-  appointmentDateFrom,
-  appointmentDateTo,
   keyword,
   showStatusFilter = true,
   statusFilter,
-  onAppointmentDateFromChange,
-  onAppointmentDateToChange,
   onKeywordChange,
+  onReset,
   onStatusFilterChange,
 }) => {
   const { t } = useTranslation()
